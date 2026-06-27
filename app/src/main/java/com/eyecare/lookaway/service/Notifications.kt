@@ -3,7 +3,6 @@ package com.eyecare.lookaway.service
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import androidx.core.content.getSystemService
 
 /** Notification channel ids + one-time channel setup. */
@@ -16,7 +15,6 @@ object Notifications {
     const val ID_BREAK = 1002
 
     fun ensureChannels(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val nm = context.getSystemService<NotificationManager>() ?: return
 
         val status = NotificationChannel(

@@ -19,13 +19,11 @@
     <string name="action_resume">Resume</string>
     <string name="action_stop">Stop</string>
     <string name="action_skip">Skip</string>
-    <string name="action_snooze">Snooze</string>
     <string name="action_done">I\'m done</string>
 
     <!-- Break screen -->
     <string name="break_headline">Look 20 feet away</string>
     <string name="break_sub">Relax your eyes and focus on something far for a moment.</string>
-    <string name="break_done">Eyes refreshed. Back to it!</string>
 
     <!-- Home -->
     <string name="home_state_idle">Reminders are off</string>
@@ -81,6 +79,4 @@
     <string name="perm_battery">Ignore battery optimization</string>
     <string name="perm_battery_desc">Keep running in the background without being killed</string>
     <string name="perm_grant">Grant</string>
-    <string name="perm_granted">Granted</string>
-    <string name="perm_skip">Maybe later</string>
 </resources>

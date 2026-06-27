@@ -1,16 +1,19 @@
 package com.eyecare.lookaway.service
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings as AndroidSettings
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.eyecare.lookaway.R
 import com.eyecare.lookaway.data.SettingsRepository
 import com.eyecare.lookaway.ui.BreakActivity
@@ -141,7 +144,10 @@ class ReminderService : Service() {
 
     private fun startForegroundStatus() {
         val notification = buildStatusNotification()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        // The specialUse foreground service type is only known on Android 14+.
+        // On older versions the plain overload is correct (the manifest type is
+        // ignored there anyway).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(
                 Notifications.ID_STATUS,
                 notification,
@@ -152,8 +158,16 @@ class ReminderService : Service() {
         }
     }
 
+    private fun canPostNotifications(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(
+                this, android.Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
+
+    // Guarded by canPostNotifications(); lint can't see through the helper.
+    @SuppressLint("MissingPermission")
     private fun refreshStatusNotification() {
-        if (!started) return
+        if (!started || !canPostNotifications()) return
         NotificationManagerCompat.from(this)
             .notify(Notifications.ID_STATUS, buildStatusNotification())
     }
@@ -198,6 +212,7 @@ class ReminderService : Service() {
         return builder.build()
     }
 
+    @SuppressLint("MissingPermission")
     private fun postBreakNotification(fullScreen: Boolean) {
         val s = ReminderEngine.settings
         val openBreak = PendingIntent.getActivity(
@@ -222,8 +237,10 @@ class ReminderService : Service() {
             builder.addAction(0, getString(R.string.action_done), servicePI(ACTION_SKIP, 4))
         }
 
-        NotificationManagerCompat.from(this)
-            .notify(Notifications.ID_BREAK, builder.build())
+        if (canPostNotifications()) {
+            NotificationManagerCompat.from(this)
+                .notify(Notifications.ID_BREAK, builder.build())
+        }
     }
 
     private fun servicePI(action: String, requestCode: Int): PendingIntent {
@@ -235,12 +252,7 @@ class ReminderService : Service() {
     }
 
     private fun stopForegroundCompat() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            @Suppress("DEPRECATION")
-            stopForeground(true)
-        }
+        stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
     override fun onDestroy() {

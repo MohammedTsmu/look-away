@@ -22,6 +22,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,11 +69,14 @@ class BreakActivity : ComponentActivity() {
             LookAwayTheme(settings.themeMode, settings.accentIndex) {
                 val state by ReminderEngine.state.collectAsStateWithLifecycle()
 
-                // Leave as soon as the break is over.
-                if (state.phase != Phase.BREAK && !finishing) {
-                    finishing = true
-                    Feedback.playBreakEnd(this, settings.sound, settings.vibrate)
-                    finishAndRemoveTask()
+                // Leave as soon as the break is over. Done as a side effect so we
+                // never call finish() from inside composition.
+                LaunchedEffect(state.phase) {
+                    if (state.phase != Phase.BREAK && !finishing) {
+                        finishing = true
+                        Feedback.playBreakEnd(this@BreakActivity, settings.sound, settings.vibrate)
+                        finishAndRemoveTask()
+                    }
                 }
 
                 BreakContent(
