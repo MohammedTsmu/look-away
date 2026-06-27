@@ -1,0 +1,269 @@
+package com.eyecare.lookaway.service
+
+import android.app.Notification
+import android.app.PendingIntent
+import android.app.Service
+import android.content.Context
+import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
+import android.os.IBinder
+import android.provider.Settings as AndroidSettings
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.eyecare.lookaway.R
+import com.eyecare.lookaway.data.SettingsRepository
+import com.eyecare.lookaway.ui.BreakActivity
+import com.eyecare.lookaway.ui.MainActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+
+/**
+ * Foreground service that hosts the [ReminderEngine]. It keeps the engine alive
+ * in the background, mirrors engine state into the ongoing status notification,
+ * and launches the break experience when a break begins.
+ */
+class ReminderService : Service() {
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private lateinit var repo: SettingsRepository
+    private var started = false
+
+    override fun onCreate() {
+        super.onCreate()
+        repo = SettingsRepository(applicationContext)
+        wireEngine()
+        observeSettings()
+        observeState()
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Promote to foreground immediately to satisfy the 5s startForeground rule.
+        startForegroundStatus()
+
+        when (intent?.action) {
+            ACTION_STOP -> {
+                stopEverything()
+                return START_NOT_STICKY
+            }
+            ACTION_PAUSE -> ReminderEngine.setPaused(true)
+            ACTION_RESUME -> ReminderEngine.setPaused(false)
+            ACTION_TOGGLE -> ReminderEngine.togglePause()
+            ACTION_SKIP -> ReminderEngine.endBreak()
+            ACTION_BREAK_NOW -> ReminderEngine.breakNow()
+            ACTION_START, null -> ensureRunning()
+        }
+        return START_STICKY
+    }
+
+    private fun ensureRunning() {
+        if (!RunState.isEnabled(this)) RunState.setEnabled(this, true)
+        if (!started) {
+            val initial = runBlocking { repo.flow.first() }
+            ReminderEngine.settings = initial
+            ReminderEngine.start(initial)
+            started = true
+        }
+    }
+
+    private fun stopEverything() {
+        ReminderEngine.stop()
+        NotificationManagerCompat.from(this).cancel(Notifications.ID_BREAK)
+        started = false
+        stopForegroundCompat()
+        stopSelf()
+    }
+
+    // ---- Engine wiring -------------------------------------------------------
+
+    private fun wireEngine() {
+        ReminderEngine.onShowBreak = { onBreakStarted() }
+        ReminderEngine.onBreakEnd = { onBreakEnded() }
+        ReminderEngine.onTick = { refreshStatusNotification() }
+    }
+
+    private fun observeSettings() {
+        scope.launch {
+            repo.flow.collect { ReminderEngine.settings = it }
+        }
+    }
+
+    private fun observeState() {
+        scope.launch {
+            ReminderEngine.state.collect { state ->
+                if (state.phase == Phase.IDLE && started) {
+                    // Engine stopped from elsewhere.
+                    stopEverything()
+                } else {
+                    refreshStatusNotification()
+                }
+            }
+        }
+    }
+
+    private fun onBreakStarted() {
+        val s = ReminderEngine.settings
+        if (s.fullScreenBreak) {
+            postBreakNotification(fullScreen = true)
+            launchBreakActivityIfPossible()
+            // BreakActivity owns sound/vibration so it can sync with its UI.
+        } else {
+            postBreakNotification(fullScreen = false)
+            Feedback.playBreakStart(this, s.sound, s.vibrate)
+        }
+    }
+
+    private fun onBreakEnded() {
+        NotificationManagerCompat.from(this).cancel(Notifications.ID_BREAK)
+    }
+
+    private fun launchBreakActivityIfPossible() {
+        // A direct activity start works when we hold the overlay permission; the
+        // full-screen-intent notification is the fallback for everyone else.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || AndroidSettings.canDrawOverlays(this)) {
+            runCatching {
+                startActivity(
+                    Intent(this, BreakActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }
+        }
+    }
+
+    // ---- Notifications -------------------------------------------------------
+
+    private fun startForegroundStatus() {
+        val notification = buildStatusNotification()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                Notifications.ID_STATUS,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
+            )
+        } else {
+            startForeground(Notifications.ID_STATUS, notification)
+        }
+    }
+
+    private fun refreshStatusNotification() {
+        if (!started) return
+        NotificationManagerCompat.from(this)
+            .notify(Notifications.ID_STATUS, buildStatusNotification())
+    }
+
+    private fun buildStatusNotification(): Notification {
+        val state = ReminderEngine.state.value
+        val contentText = when {
+            !state.isRunning -> getString(R.string.home_state_idle)
+            state.paused -> getString(R.string.notif_paused)
+            state.inQuietHours -> getString(R.string.settings_quiet)
+            state.phase == Phase.BREAK ->
+                getString(R.string.notif_break_text, state.secondsRemaining)
+            else -> getString(R.string.notif_next_break, formatClock(state.secondsRemaining))
+        }
+
+        val openApp = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val builder = NotificationCompat.Builder(this, Notifications.CHANNEL_STATUS)
+            .setSmallIcon(R.drawable.ic_eye)
+            .setContentTitle(getString(R.string.notif_running_title))
+            .setContentText(contentText)
+            .setContentIntent(openApp)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)
+            .setShowWhen(false)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+
+        // Pause / Resume toggle.
+        if (state.paused) {
+            builder.addAction(0, getString(R.string.action_resume), servicePI(ACTION_RESUME, 1))
+        } else {
+            builder.addAction(0, getString(R.string.action_pause), servicePI(ACTION_PAUSE, 2))
+        }
+        builder.addAction(0, getString(R.string.action_stop), servicePI(ACTION_STOP, 3))
+
+        return builder.build()
+    }
+
+    private fun postBreakNotification(fullScreen: Boolean) {
+        val s = ReminderEngine.settings
+        val openBreak = PendingIntent.getActivity(
+            this, 10,
+            Intent(this, BreakActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val builder = NotificationCompat.Builder(this, Notifications.CHANNEL_BREAK)
+            .setSmallIcon(R.drawable.ic_eye)
+            .setContentTitle(getString(R.string.notif_break_title))
+            .setContentText(getString(R.string.notif_break_text, s.breakSeconds))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setAutoCancel(true)
+            .setContentIntent(openBreak)
+            .setOngoing(fullScreen)
+
+        if (fullScreen) {
+            builder.setFullScreenIntent(openBreak, true)
+        } else {
+            builder.addAction(0, getString(R.string.action_done), servicePI(ACTION_SKIP, 4))
+        }
+
+        NotificationManagerCompat.from(this)
+            .notify(Notifications.ID_BREAK, builder.build())
+    }
+
+    private fun servicePI(action: String, requestCode: Int): PendingIntent {
+        val intent = Intent(this, ReminderService::class.java).setAction(action)
+        return PendingIntent.getService(
+            this, requestCode, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    private fun stopForegroundCompat() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            @Suppress("DEPRECATION")
+            stopForeground(true)
+        }
+    }
+
+    override fun onDestroy() {
+        scope.cancel()
+        ReminderEngine.onShowBreak = null
+        ReminderEngine.onBreakEnd = null
+        ReminderEngine.onTick = null
+        super.onDestroy()
+    }
+
+    companion object {
+        const val ACTION_START = "com.eyecare.lookaway.START"
+        const val ACTION_STOP = "com.eyecare.lookaway.STOP"
+        const val ACTION_PAUSE = "com.eyecare.lookaway.PAUSE"
+        const val ACTION_RESUME = "com.eyecare.lookaway.RESUME"
+        const val ACTION_TOGGLE = "com.eyecare.lookaway.TOGGLE"
+        const val ACTION_SKIP = "com.eyecare.lookaway.SKIP"
+        const val ACTION_BREAK_NOW = "com.eyecare.lookaway.BREAK_NOW"
+
+        fun formatClock(totalSeconds: Int): String {
+            val m = totalSeconds / 60
+            val sec = totalSeconds % 60
+            return "%d:%02d".format(m, sec)
+        }
+    }
+}

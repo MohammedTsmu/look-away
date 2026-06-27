@@ -1,0 +1,17 @@
+# Normalize line endings: LF in the repository, native on checkout.
+* text=auto eol=lf
+
+# Windows scripts must stay CRLF.
+*.bat text eol=crlf
+
+# The Gradle wrapper script must stay LF so it runs on macOS/Linux CI.
+gradlew text eol=lf
+
+# Binary assets.
+*.jar binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.apk binary
+*.keystore binary
+*.jks binary

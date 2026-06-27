@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Look Away</string>
+    <string name="app_tagline">The 20·20·20 eye-care rule, on autopilot</string>
+
+    <!-- Notifications -->
+    <string name="channel_status_name">Reminder status</string>
+    <string name="channel_status_desc">Ongoing notification while the reminder is running</string>
+    <string name="channel_break_name">Break alerts</string>
+    <string name="channel_break_desc">The full-screen alert that tells you to look away</string>
+
+    <string name="notif_running_title">Look Away is watching your eyes</string>
+    <string name="notif_next_break">Next break in %1$s</string>
+    <string name="notif_paused">Paused — tap to resume</string>
+    <string name="notif_break_title">Time to look away</string>
+    <string name="notif_break_text">Rest your eyes for %1$d seconds</string>
+
+    <string name="action_pause">Pause</string>
+    <string name="action_resume">Resume</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_skip">Skip</string>
+    <string name="action_snooze">Snooze</string>
+    <string name="action_done">I\'m done</string>
+
+    <!-- Break screen -->
+    <string name="break_headline">Look 20 feet away</string>
+    <string name="break_sub">Relax your eyes and focus on something far for a moment.</string>
+    <string name="break_done">Eyes refreshed. Back to it!</string>
+
+    <!-- Home -->
+    <string name="home_state_idle">Reminders are off</string>
+    <string name="home_state_running">Protecting your eyes</string>
+    <string name="home_state_paused">Paused</string>
+    <string name="home_start">Start</string>
+    <string name="home_stop">Stop</string>
+    <string name="home_pause">Pause</string>
+    <string name="home_resume">Resume</string>
+    <string name="home_next_break">Next break</string>
+    <string name="home_cycles_today">Breaks taken</string>
+    <string name="home_test_break">Preview a break now</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_timing">Timing</string>
+    <string name="settings_work_interval">Work interval</string>
+    <string name="settings_break_length">Break length</string>
+    <string name="settings_behavior">Behavior</string>
+    <string name="settings_fullscreen">Full-screen break</string>
+    <string name="settings_fullscreen_desc">Take over the screen during a break instead of just a notification</string>
+    <string name="settings_strict">Strict mode</string>
+    <string name="settings_strict_desc">Hide the Skip button so you actually take the break</string>
+    <string name="settings_feedback">Feedback</string>
+    <string name="settings_sound">Play sound</string>
+    <string name="settings_vibrate">Vibrate</string>
+    <string name="settings_dim">Dim the screen during breaks</string>
+    <string name="settings_startup">Startup</string>
+    <string name="settings_boot">Start after reboot</string>
+    <string name="settings_boot_desc">Resume reminders automatically when the device restarts</string>
+    <string name="settings_autostart">Start when app opens</string>
+    <string name="settings_quiet">Quiet hours</string>
+    <string name="settings_quiet_enable">Enable quiet hours</string>
+    <string name="settings_quiet_desc">Pause reminders during this window</string>
+    <string name="settings_quiet_from">From</string>
+    <string name="settings_quiet_to">To</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_accent">Accent color</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+
+    <!-- Permissions onboarding -->
+    <string name="perm_title">A couple of permissions</string>
+    <string name="perm_sub">Grant these so reminders show up reliably.</string>
+    <string name="perm_notif">Notifications</string>
+    <string name="perm_notif_desc">Show the ongoing status and break alerts</string>
+    <string name="perm_overlay">Display over other apps</string>
+    <string name="perm_overlay_desc">Show the break full-screen, even over other apps</string>
+    <string name="perm_alarm">Exact alarms</string>
+    <string name="perm_alarm_desc">Trigger breaks at the right moment</string>
+    <string name="perm_battery">Ignore battery optimization</string>
+    <string name="perm_battery_desc">Keep running in the background without being killed</string>
+    <string name="perm_grant">Grant</string>
+    <string name="perm_granted">Granted</string>
+    <string name="perm_skip">Maybe later</string>
+</resources>

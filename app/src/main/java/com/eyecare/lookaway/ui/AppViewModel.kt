@@ -1,0 +1,61 @@
+package com.eyecare.lookaway.ui
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.eyecare.lookaway.data.Settings
+import com.eyecare.lookaway.data.SettingsRepository
+import com.eyecare.lookaway.data.ThemeMode
+import com.eyecare.lookaway.service.ReminderEngine
+import com.eyecare.lookaway.service.ReminderScheduler
+import com.eyecare.lookaway.service.ReminderService
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+/** Bridges the UI to settings (DataStore) and the running reminder engine. */
+class AppViewModel(app: Application) : AndroidViewModel(app) {
+
+    private val repo = SettingsRepository(app)
+
+    val settings: StateFlow<Settings> = repo.flow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = Settings(),
+    )
+
+    val engineState = ReminderEngine.state
+
+    // ---- Reminder control ----
+    fun start() = ReminderScheduler.startReminders(context())
+    fun stop() = ReminderScheduler.stopReminders(context())
+    fun togglePause() = ReminderScheduler.sendAction(context(), ReminderService.ACTION_TOGGLE)
+    fun previewBreak() {
+        // Make sure something is running, then jump to a break.
+        if (!ReminderEngine.state.value.isRunning) start()
+        ReminderScheduler.sendAction(context(), ReminderService.ACTION_BREAK_NOW)
+    }
+
+    // ---- Settings setters ----
+    fun setWorkMinutes(v: Int) = edit { setWorkMinutes(v) }
+    fun setBreakSeconds(v: Int) = edit { setBreakSeconds(v) }
+    fun setSound(v: Boolean) = edit { setSound(v) }
+    fun setVibrate(v: Boolean) = edit { setVibrate(v) }
+    fun setFullScreen(v: Boolean) = edit { setFullScreen(v) }
+    fun setDim(v: Boolean) = edit { setDim(v) }
+    fun setStrict(v: Boolean) = edit { setStrict(v) }
+    fun setStartOnBoot(v: Boolean) = edit { setStartOnBoot(v) }
+    fun setStartOnOpen(v: Boolean) = edit { setStartOnOpen(v) }
+    fun setQuietEnabled(v: Boolean) = edit { setQuietEnabled(v) }
+    fun setQuietStart(v: Int) = edit { setQuietStart(v) }
+    fun setQuietEnd(v: Int) = edit { setQuietEnd(v) }
+    fun setTheme(v: ThemeMode) = edit { setTheme(v) }
+    fun setAccent(v: Int) = edit { setAccent(v) }
+
+    private fun edit(block: suspend SettingsRepository.() -> Unit) {
+        viewModelScope.launch { repo.block() }
+    }
+
+    private fun context() = getApplication<Application>().applicationContext
+}
