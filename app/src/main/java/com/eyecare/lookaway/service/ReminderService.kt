@@ -16,6 +16,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.eyecare.lookaway.R
 import com.eyecare.lookaway.data.SettingsRepository
+import com.eyecare.lookaway.media.MediaPauser
 import com.eyecare.lookaway.ui.BreakActivity
 import com.eyecare.lookaway.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
@@ -57,13 +58,19 @@ class ReminderService : Service() {
                 return START_NOT_STICKY
             }
             ACTION_PAUSE -> ReminderEngine.setPaused(true)
-            ACTION_RESUME -> ReminderEngine.setPaused(false)
-            ACTION_TOGGLE -> ReminderEngine.togglePause()
+            ACTION_RESUME -> { ReminderEngine.setPaused(false); onManualResume() }
+            ACTION_TOGGLE -> { ReminderEngine.togglePause(); if (!ReminderEngine.state.value.paused) onManualResume() }
             ACTION_SKIP -> ReminderEngine.endBreak()
             ACTION_BREAK_NOW -> ReminderEngine.breakNow()
             ACTION_START, null -> ensureRunning()
         }
         return START_STICKY
+    }
+
+    /** A manual resume cancels any pending timed-pause auto-resume. */
+    private fun onManualResume() {
+        ReminderScheduler.cancelAutoResume(this)
+        RunState.clearResumeAt(this)
     }
 
     private fun ensureRunning() {
@@ -77,8 +84,14 @@ class ReminderService : Service() {
     }
 
     private fun stopEverything() {
+        val settings = ReminderEngine.settings
         ReminderEngine.stop()
         NotificationManagerCompat.from(this).cancel(Notifications.ID_BREAK)
+        MediaPauser.forget()
+        // So a turned-off app doesn't stay forgotten, schedule a gentle nudge.
+        if (settings.remindWhenOff) {
+            ReminderScheduler.scheduleOffReminder(this, settings.remindWhenOffHours)
+        }
         started = false
         stopForegroundCompat()
         stopSelf()
@@ -113,6 +126,7 @@ class ReminderService : Service() {
 
     private fun onBreakStarted() {
         val s = ReminderEngine.settings
+        if (s.pauseMediaOnBreak) MediaPauser.pauseActive(this)
         if (s.fullScreenBreak) {
             postBreakNotification(fullScreen = true)
             launchBreakActivityIfPossible()
@@ -125,6 +139,8 @@ class ReminderService : Service() {
 
     private fun onBreakEnded() {
         NotificationManagerCompat.from(this).cancel(Notifications.ID_BREAK)
+        // Resume whatever we paused (no-op if nothing was paused).
+        MediaPauser.resume(this)
     }
 
     private fun launchBreakActivityIfPossible() {
@@ -158,6 +174,10 @@ class ReminderService : Service() {
         }
     }
 
+    private fun formatTimeOfDay(epochMillis: Long): String =
+        android.text.format.DateFormat.getTimeFormat(this)
+            .format(java.util.Date(epochMillis))
+
     private fun canPostNotifications(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(
@@ -174,8 +194,11 @@ class ReminderService : Service() {
 
     private fun buildStatusNotification(): Notification {
         val state = ReminderEngine.state.value
+        val resumeAt = RunState.resumeAt(this)
         val contentText = when {
             !state.isRunning -> getString(R.string.home_state_idle)
+            state.paused && resumeAt > System.currentTimeMillis() ->
+                getString(R.string.notif_paused_until, formatTimeOfDay(resumeAt))
             state.paused -> getString(R.string.notif_paused)
             state.inQuietHours -> getString(R.string.settings_quiet)
             state.phase == Phase.BREAK ->

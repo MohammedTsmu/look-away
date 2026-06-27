@@ -14,6 +14,15 @@
     <string name="notif_paused">Paused — tap to resume</string>
     <string name="notif_break_title">Time to look away</string>
     <string name="notif_break_text">Rest your eyes for %1$d seconds</string>
+    <string name="notif_paused_until">Paused — resumes at %1$s</string>
+
+    <!-- Media + nudge -->
+    <string name="media_listener_label">Look Away — pause media during breaks</string>
+    <string name="channel_nudge_name">Gentle reminders</string>
+    <string name="channel_nudge_desc">Reminds you if eye-care has been turned off</string>
+    <string name="nudge_off_title">Eye-care is off</string>
+    <string name="nudge_off_text">Look Away has been off for a while. Tap to protect your eyes again.</string>
+    <string name="action_turn_on">Turn on</string>
 
     <string name="action_pause">Pause</string>
     <string name="action_resume">Resume</string>
@@ -47,6 +56,8 @@
     <string name="settings_fullscreen_desc">Take over the screen during a break instead of just a notification</string>
     <string name="settings_strict">Strict mode</string>
     <string name="settings_strict_desc">Hide the Skip button so you actually take the break</string>
+    <string name="settings_pause_media">Pause video &amp; music on breaks</string>
+    <string name="settings_pause_media_desc">Pauses YouTube, Netflix, Cinemana, music… during a break and resumes after. Needs notification access.</string>
     <string name="settings_feedback">Feedback</string>
     <string name="settings_sound">Play sound</string>
     <string name="settings_vibrate">Vibrate</string>
@@ -60,6 +71,23 @@
     <string name="settings_quiet_desc">Pause reminders during this window</string>
     <string name="settings_quiet_from">From</string>
     <string name="settings_quiet_to">To</string>
+    <string name="settings_when_off">When turned off</string>
+    <string name="settings_remind_off">Remind me it\'s off</string>
+    <string name="settings_remind_off_desc">If you turn reminders off, nudge you later so you don\'t forget</string>
+    <string name="settings_remind_off_delay">Remind after</string>
+
+    <!-- Turn-off bottom sheet -->
+    <string name="sheet_title">Turn off or pause?</string>
+    <string name="sheet_sub">Pausing turns itself back on automatically.</string>
+    <string name="sheet_pause_30m">Pause 30 minutes</string>
+    <string name="sheet_pause_1h">Pause 1 hour</string>
+    <string name="sheet_pause_2h">Pause 2 hours</string>
+    <string name="sheet_pause_morning">Pause until tomorrow morning</string>
+    <string name="sheet_turn_off">Turn off completely</string>
+    <string name="sheet_turn_off_note">We\'ll remind you in %1$d h so it isn\'t off forever</string>
+    <string name="sheet_turn_off_note_plain">Turn reminders off</string>
+    <string name="hours_short">%1$d h</string>
+
     <string name="settings_appearance">Appearance</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_accent">Accent color</string>
@@ -78,5 +106,7 @@
     <string name="perm_alarm_desc">Trigger breaks at the right moment</string>
     <string name="perm_battery">Ignore battery optimization</string>
     <string name="perm_battery_desc">Keep running in the background without being killed</string>
+    <string name="perm_media">Pause media on breaks</string>
+    <string name="perm_media_desc">Grant notification access so breaks can pause video &amp; music</string>
     <string name="perm_grant">Grant</string>
 </resources>

@@ -31,6 +31,24 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun start() = ReminderScheduler.startReminders(context())
     fun stop() = ReminderScheduler.stopReminders(context())
     fun togglePause() = ReminderScheduler.sendAction(context(), ReminderService.ACTION_TOGGLE)
+
+    /** Pause now and auto-resume after [minutes]. */
+    fun pauseForMinutes(minutes: Int) =
+        ReminderScheduler.pauseFor(context(), minutes.toLong() * 60 * 1000)
+
+    /** Pause now and auto-resume at the next [hour]:00 (default 8am). */
+    fun pauseUntilMorning(hour: Int = 8) {
+        val cal = java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.HOUR_OF_DAY, hour)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }
+        if (cal.timeInMillis <= System.currentTimeMillis()) {
+            cal.add(java.util.Calendar.DAY_OF_YEAR, 1)
+        }
+        ReminderScheduler.pauseFor(context(), cal.timeInMillis - System.currentTimeMillis())
+    }
     fun previewBreak() {
         // Make sure something is running, then jump to a break.
         if (!ReminderEngine.state.value.isRunning) start()
@@ -45,6 +63,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setFullScreen(v: Boolean) = edit { setFullScreen(v) }
     fun setDim(v: Boolean) = edit { setDim(v) }
     fun setStrict(v: Boolean) = edit { setStrict(v) }
+    fun setPauseMedia(v: Boolean) = edit { setPauseMedia(v) }
+    fun setRemindWhenOff(v: Boolean) = edit { setRemindWhenOff(v) }
+    fun setRemindWhenOffHours(v: Int) = edit { setRemindWhenOffHours(v) }
     fun setStartOnBoot(v: Boolean) = edit { setStartOnBoot(v) }
     fun setStartOnOpen(v: Boolean) = edit { setStartOnOpen(v) }
     fun setQuietEnabled(v: Boolean) = edit { setQuietEnabled(v) }

@@ -13,6 +13,12 @@ rest your eyes.
   notification showing the time until your next break.
 - **Full-screen break reminder** with a calming countdown ring, sound, and
   vibration — shown even over the lock screen.
+- **Pauses video & music during a break and resumes after** — YouTube, Netflix,
+  Cinemana, podcasts, music, etc. (via media-session control; needs notification
+  access).
+- **Never silently forgotten**: instead of a hard Stop you can **pause for
+  30 min / 1 h / 2 h / until morning** (auto-resumes), and turning it off fully
+  schedules a gentle **"eye-care is off" reminder** so it doesn't stay off forever.
 - **Starts after reboot** and **when you open the app** (both optional).
 - **Reliable timing** via an AlarmManager watchdog that revives the service if the
   system kills it.
@@ -20,8 +26,10 @@ rest your eyes.
   - Work interval (1–60 min) and break length (5–120 s)
   - Full-screen break vs. gentle notification
   - **Strict mode** (hide Skip so you actually take the break)
+  - **Pause video & music on breaks** toggle
   - Sound, vibration, and screen-dimming toggles
   - **Quiet hours** to pause reminders overnight
+  - **"Remind me it's off"** with a configurable delay (1–48 h)
   - Start-after-reboot / start-on-open switches
   - Theme (System / Light / Dark) and six accent colors
 - **Privacy-first**: everything stays on-device (Jetpack DataStore). No network
@@ -60,8 +68,10 @@ alongside a release install.
 | Exact alarms | Trigger breaks at the right moment |
 | Run at startup | Resume after reboot |
 | Ignore battery optimization | Avoid being killed in the background |
+| Notification access | Pause/resume video & music during breaks (optional) |
 
 All are requested with clear explanations the first time you open the app.
+Notification access is only needed if you enable "Pause video & music on breaks".
 
 ## License
 

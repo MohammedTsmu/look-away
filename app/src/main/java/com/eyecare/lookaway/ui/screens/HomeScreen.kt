@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,10 +18,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Snooze
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -28,15 +33,20 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,6 +76,18 @@ fun HomeScreen(
 ) {
     val state by viewModel.engineState.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    var showStopSheet by remember { mutableStateOf(false) }
+
+    if (showStopSheet) {
+        StopSheet(
+            remindHours = settings.remindWhenOffHours,
+            remindWhenOff = settings.remindWhenOff,
+            onPauseMinutes = { showStopSheet = false; viewModel.pauseForMinutes(it) },
+            onPauseMorning = { showStopSheet = false; viewModel.pauseUntilMorning() },
+            onTurnOff = { showStopSheet = false; viewModel.stop() },
+            onDismiss = { showStopSheet = false },
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -95,10 +117,14 @@ fun HomeScreen(
                 .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (!permissions.allEssentialGranted || !permissions.overlay || !permissions.batteryUnrestricted) {
+            val needMedia = settings.pauseMediaOnBreak && !permissions.mediaAccess
+            if (!permissions.allEssentialGranted || !permissions.overlay ||
+                !permissions.batteryUnrestricted || needMedia
+            ) {
                 Spacer(Modifier.height(8.dp))
                 PermissionCard(
                     permissions = permissions,
+                    showMedia = needMedia,
                     onRequestNotifications = onRequestNotifications,
                     onOpenIntent = onOpenIntent,
                 )
@@ -157,7 +183,7 @@ fun HomeScreen(
                         )
                     }
                     Button(
-                        onClick = { viewModel.stop() },
+                        onClick = { showStopSheet = true },
                         modifier = Modifier.weight(1f).height(54.dp),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -281,6 +307,7 @@ private fun StatCard(modifier: Modifier = Modifier, value: String, label: String
 @Composable
 private fun PermissionCard(
     permissions: PermissionStatus,
+    showMedia: Boolean,
     onRequestNotifications: () -> Unit,
     onOpenIntent: (android.content.Intent) -> Unit,
 ) {
@@ -333,6 +360,15 @@ private fun PermissionCard(
                     onGrant = { onOpenIntent(com.eyecare.lookaway.ui.Permissions.batteryIntent(context)) },
                 )
             }
+            if (showMedia) {
+                PermissionRow(
+                    label = stringResource(R.string.perm_media),
+                    desc = stringResource(R.string.perm_media_desc),
+                    onGrant = {
+                        onOpenIntent(com.eyecare.lookaway.ui.Permissions.notificationListenerSettingsIntent())
+                    },
+                )
+            }
         }
     }
 }
@@ -354,6 +390,88 @@ private fun PermissionRow(label: String, desc: String, onGrant: () -> Unit) {
         Spacer(Modifier.width(8.dp))
         Button(onClick = onGrant, shape = RoundedCornerShape(12.dp)) {
             Text(stringResource(R.string.perm_grant))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StopSheet(
+    remindHours: Int,
+    remindWhenOff: Boolean,
+    onPauseMinutes: (Int) -> Unit,
+    onPauseMorning: () -> Unit,
+    onTurnOff: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 28.dp),
+        ) {
+            Text(
+                stringResource(R.string.sheet_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                stringResource(R.string.sheet_sub),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(12.dp))
+
+            SheetRow(Icons.Filled.Snooze, stringResource(R.string.sheet_pause_30m)) { onPauseMinutes(30) }
+            SheetRow(Icons.Filled.Timer, stringResource(R.string.sheet_pause_1h)) { onPauseMinutes(60) }
+            SheetRow(Icons.Filled.Timer, stringResource(R.string.sheet_pause_2h)) { onPauseMinutes(120) }
+            SheetRow(Icons.Filled.Bedtime, stringResource(R.string.sheet_pause_morning)) { onPauseMorning() }
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+            SheetRow(
+                icon = Icons.Filled.PowerSettingsNew,
+                label = stringResource(R.string.sheet_turn_off),
+                subtitle = if (remindWhenOff) {
+                    stringResource(R.string.sheet_turn_off_note, remindHours)
+                } else {
+                    stringResource(R.string.sheet_turn_off_note_plain)
+                },
+                tint = MaterialTheme.colorScheme.error,
+                onClick = onTurnOff,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SheetRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    subtitle: String? = null,
+    tint: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp, horizontal = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, contentDescription = null, tint = tint)
+        Spacer(Modifier.width(16.dp))
+        Column {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            if (subtitle != null) {
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

@@ -10,9 +10,11 @@ object Notifications {
 
     const val CHANNEL_STATUS = "status"
     const val CHANNEL_BREAK = "break"
+    const val CHANNEL_NUDGE = "nudge"
 
     const val ID_STATUS = 1001
     const val ID_BREAK = 1002
+    const val ID_NUDGE = 1003
 
     fun ensureChannels(context: Context) {
         val nm = context.getSystemService<NotificationManager>() ?: return
@@ -44,7 +46,17 @@ object Notifications {
             lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
         }
 
+        val nudge = NotificationChannel(
+            CHANNEL_NUDGE,
+            context.getString(com.eyecare.lookaway.R.string.channel_nudge_name),
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply {
+            description = context.getString(com.eyecare.lookaway.R.string.channel_nudge_desc)
+            setShowBadge(true)
+        }
+
         nm.createNotificationChannel(status)
         nm.createNotificationChannel(breakCh)
+        nm.createNotificationChannel(nudge)
     }
 }

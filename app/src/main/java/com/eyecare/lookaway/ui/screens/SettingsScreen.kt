@@ -49,8 +49,13 @@ import com.eyecare.lookaway.ui.theme.Accents
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: AppViewModel, onBack: () -> Unit) {
+fun SettingsScreen(
+    viewModel: AppViewModel,
+    onBack: () -> Unit,
+    onOpenIntent: (android.content.Intent) -> Unit = {},
+) {
     val s by viewModel.settings.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -110,6 +115,18 @@ fun SettingsScreen(viewModel: AppViewModel, onBack: () -> Unit) {
                     checked = s.dimScreen,
                     onChange = viewModel::setDim,
                 )
+                SwitchRow(
+                    title = stringResource(R.string.settings_pause_media),
+                    subtitle = stringResource(R.string.settings_pause_media_desc),
+                    checked = s.pauseMediaOnBreak,
+                    onChange = { on ->
+                        viewModel.setPauseMedia(on)
+                        // Sending the user to grant access the first time they enable it.
+                        if (on && !com.eyecare.lookaway.ui.Permissions.hasMediaAccess(context)) {
+                            onOpenIntent(com.eyecare.lookaway.ui.Permissions.notificationListenerSettingsIntent())
+                        }
+                    },
+                )
             }
 
             // ---- Feedback ----
@@ -162,6 +179,26 @@ fun SettingsScreen(viewModel: AppViewModel, onBack: () -> Unit) {
                         label = stringResource(R.string.settings_quiet_to),
                         minutes = s.quietEndMinutes,
                         onPicked = viewModel::setQuietEnd,
+                    )
+                }
+            }
+
+            // ---- When turned off ----
+            Section(stringResource(R.string.settings_when_off)) {
+                SwitchRow(
+                    title = stringResource(R.string.settings_remind_off),
+                    subtitle = stringResource(R.string.settings_remind_off_desc),
+                    checked = s.remindWhenOff,
+                    onChange = viewModel::setRemindWhenOff,
+                )
+                if (s.remindWhenOff) {
+                    SliderRow(
+                        label = stringResource(R.string.settings_remind_off_delay),
+                        valueText = stringResource(R.string.hours_short, s.remindWhenOffHours),
+                        value = s.remindWhenOffHours.toFloat(),
+                        range = 1f..48f,
+                        steps = 46,
+                        onChange = { viewModel.setRemindWhenOffHours(it.toInt()) },
                     )
                 }
             }

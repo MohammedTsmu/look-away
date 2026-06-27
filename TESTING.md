@@ -55,3 +55,9 @@ Then `./gradlew installDebug` and launch the app.
 - [ ] Enable **Start after reboot**, reboot the emulator → reminder auto-starts.
 - [ ] Quiet hours window pauses the countdown.
 - [ ] Theme + accent changes apply immediately.
+- [ ] Enable **Pause video & music on breaks**, grant notification access, play a
+      YouTube/Netflix/music clip → it pauses on break start and resumes on break end.
+- [ ] Tap **Stop** → bottom sheet offers timed pauses; "Pause 1 hour" shows
+      "Paused — resumes at HH:mm" and auto-resumes.
+- [ ] **Turn off completely** with "Remind me it's off" on → after the configured
+      delay, the "Eye-care is off" nudge appears; its **Turn on** action restarts it.

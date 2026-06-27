@@ -62,6 +62,7 @@ class MainActivity : ComponentActivity() {
                     SCREEN_SETTINGS -> SettingsScreen(
                         viewModel = viewModel,
                         onBack = { screen = SCREEN_HOME },
+                        onOpenIntent = { intent -> openSafely(intent) },
                     )
                     else -> HomeScreen(
                         viewModel = viewModel,

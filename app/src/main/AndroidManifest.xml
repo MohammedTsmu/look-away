@@ -62,6 +62,19 @@
             android:taskAffinity=".break"
             android:theme="@style/Theme.LookAway.Break" />
 
+        <!-- Enables reading active media sessions so breaks can pause/resume
+             video & music. Bound by the system only when the user grants
+             notification access; we never read notification content. -->
+        <service
+            android:name=".media.MediaNotificationListener"
+            android:exported="false"
+            android:label="@string/media_listener_label"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
         <service
             android:name=".service.ReminderService"
             android:exported="false"

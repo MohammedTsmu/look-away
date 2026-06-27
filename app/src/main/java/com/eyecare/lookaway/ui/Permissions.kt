@@ -17,6 +17,7 @@ data class PermissionStatus(
     val overlay: Boolean,
     val exactAlarm: Boolean,
     val batteryUnrestricted: Boolean,
+    val mediaAccess: Boolean,
 ) {
     val allEssentialGranted: Boolean get() = notifications && exactAlarm
 }
@@ -28,7 +29,14 @@ object Permissions {
         overlay = hasOverlay(context),
         exactAlarm = hasExactAlarm(context),
         batteryUnrestricted = isBatteryUnrestricted(context),
+        mediaAccess = hasMediaAccess(context),
     )
+
+    fun hasMediaAccess(context: Context): Boolean =
+        com.eyecare.lookaway.media.MediaPauser.hasAccess(context)
+
+    fun notificationListenerSettingsIntent(): Intent =
+        Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
 
     fun hasNotifications(context: Context): Boolean =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
