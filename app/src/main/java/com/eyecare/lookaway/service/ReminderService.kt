@@ -272,10 +272,7 @@ class ReminderService : Service() {
         const val ACTION_SKIP = "com.eyecare.lookaway.SKIP"
         const val ACTION_BREAK_NOW = "com.eyecare.lookaway.BREAK_NOW"
 
-        fun formatClock(totalSeconds: Int): String {
-            val m = totalSeconds / 60
-            val sec = totalSeconds % 60
-            return "%d:%02d".format(m, sec)
-        }
+        fun formatClock(totalSeconds: Int): String =
+            com.eyecare.lookaway.util.Format.clock(totalSeconds)
     }
 }

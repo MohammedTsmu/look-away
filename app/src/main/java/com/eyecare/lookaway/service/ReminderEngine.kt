@@ -1,6 +1,7 @@
 package com.eyecare.lookaway.service
 
 import com.eyecare.lookaway.data.Settings
+import com.eyecare.lookaway.util.TimeWindow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -161,10 +162,7 @@ object ReminderEngine {
         if (!settings.quietHoursEnabled) return false
         val now = Calendar.getInstance()
         val minutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
-        val start = settings.quietStartMinutes
-        val end = settings.quietEndMinutes
-        return if (start <= end) minutes in start until end
-        else minutes >= start || minutes < end // window wraps past midnight
+        return TimeWindow.contains(minutes, settings.quietStartMinutes, settings.quietEndMinutes)
     }
 
     private const val TICK_MS = 100L
