@@ -42,6 +42,10 @@ object ReminderEngine {
     @Volatile
     var settings: Settings = Settings()
 
+    /** Whether the device screen is currently on. Updated by the service. */
+    @Volatile
+    private var screenOn: Boolean = true
+
     /** Invoked once at the start of every break, on the engine's scope. */
     var onShowBreak: (() -> Unit)? = null
 
@@ -78,6 +82,20 @@ object ReminderEngine {
         triggerBreakNow = false
         onBreakEnd?.invoke()
         _state.value = EngineState(phase = Phase.IDLE, breaksTaken = _state.value.breaksTaken)
+    }
+
+    /**
+     * Tracks the screen state. When the screen turns off we abandon any active
+     * break (nobody is looking) — the working countdown will then hold until the
+     * screen comes back on, so reminders only count actual screen-on time.
+     */
+    fun setScreenOn(on: Boolean) {
+        if (screenOn == on) return
+        screenOn = on
+        if (!on && settings.pauseWhenScreenOff && _state.value.phase == Phase.BREAK) {
+            skipRequested = true
+        }
+        onTick?.invoke(_state.value)
     }
 
     fun togglePause() = setPaused(!_state.value.paused)
@@ -136,7 +154,11 @@ object ReminderEngine {
                 _state.value = st.copy(inQuietHours = quiet)
                 onTick?.invoke(_state.value)
             }
-            if (st.paused || quiet) continue
+            // While the screen is off the user isn't straining their eyes, so
+            // freeze the work countdown (and thus never fire a break) until it
+            // comes back on.
+            val screenHold = phase == Phase.WORKING && settings.pauseWhenScreenOff && !screenOn
+            if (st.paused || quiet || screenHold) continue
 
             remainingMs -= TICK_MS
             val whole = ceil(remainingMs / 1000.0).toInt()

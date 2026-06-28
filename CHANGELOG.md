@@ -38,6 +38,20 @@ So the version literally encodes the scope: `1.15.3` = generation 1, **15 featur
 | 1 | Lint fixes & API-guard hardening (notification-permission guards, Android-14 foreground-service-type handling, modern back-press, obsolete-SDK cleanup) |
 | 2 | Unit tests + GitHub Actions CI + testing docs |
 | 3 | Audio-focus fallback so players without a media session (e.g. Cinemana) also pause/resume |
+| 4 | Screen-off awareness — only count screen-on time; no breaks while locked/asleep; ongoing status hidden from the lock screen |
+
+---
+
+## 1.15.4
+
+- **Fix:** reminders no longer fire while the screen is off/locked. The work
+  countdown now freezes when the screen turns off and resumes when it turns back
+  on, so only actual screen-on time counts toward a break (eye strain only
+  happens while you're looking at the screen). A break in progress is dismissed
+  if the screen goes off. New **"Pause when screen is off"** setting (on by default).
+- The ongoing status notification is now hidden from the lock screen (still shown
+  when unlocked).
+- Removed the GitHub Actions workflow (build/lint/test are run locally instead).
 
 ---
 

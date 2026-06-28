@@ -15,6 +15,7 @@ data class Settings(
     val fullScreenBreak: Boolean = true,
     val dimScreen: Boolean = true,
     val strictMode: Boolean = false,
+    val pauseWhenScreenOff: Boolean = true,
     val pauseMediaOnBreak: Boolean = true,
     val startOnBoot: Boolean = true,
     val startOnAppOpen: Boolean = true,

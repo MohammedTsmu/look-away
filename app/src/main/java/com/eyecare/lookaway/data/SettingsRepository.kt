@@ -26,6 +26,7 @@ class SettingsRepository(private val context: Context) {
         val fullScreen = booleanPreferencesKey("full_screen")
         val dim = booleanPreferencesKey("dim_screen")
         val strict = booleanPreferencesKey("strict_mode")
+        val pauseScreenOff = booleanPreferencesKey("pause_screen_off")
         val pauseMedia = booleanPreferencesKey("pause_media")
         val startOnBoot = booleanPreferencesKey("start_on_boot")
         val startOnOpen = booleanPreferencesKey("start_on_open")
@@ -50,6 +51,7 @@ class SettingsRepository(private val context: Context) {
             fullScreenBreak = this[Keys.fullScreen] ?: d.fullScreenBreak,
             dimScreen = this[Keys.dim] ?: d.dimScreen,
             strictMode = this[Keys.strict] ?: d.strictMode,
+            pauseWhenScreenOff = this[Keys.pauseScreenOff] ?: d.pauseWhenScreenOff,
             pauseMediaOnBreak = this[Keys.pauseMedia] ?: d.pauseMediaOnBreak,
             startOnBoot = this[Keys.startOnBoot] ?: d.startOnBoot,
             startOnAppOpen = this[Keys.startOnOpen] ?: d.startOnAppOpen,
@@ -70,6 +72,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFullScreen(v: Boolean) = edit { it[Keys.fullScreen] = v }
     suspend fun setDim(v: Boolean) = edit { it[Keys.dim] = v }
     suspend fun setStrict(v: Boolean) = edit { it[Keys.strict] = v }
+    suspend fun setPauseWhenScreenOff(v: Boolean) = edit { it[Keys.pauseScreenOff] = v }
     suspend fun setPauseMedia(v: Boolean) = edit { it[Keys.pauseMedia] = v }
     suspend fun setStartOnBoot(v: Boolean) = edit { it[Keys.startOnBoot] = v }
     suspend fun setStartOnOpen(v: Boolean) = edit { it[Keys.startOnOpen] = v }

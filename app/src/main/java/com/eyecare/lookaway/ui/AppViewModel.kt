@@ -63,6 +63,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setFullScreen(v: Boolean) = edit { setFullScreen(v) }
     fun setDim(v: Boolean) = edit { setDim(v) }
     fun setStrict(v: Boolean) = edit { setStrict(v) }
+    fun setPauseWhenScreenOff(v: Boolean) = edit { setPauseWhenScreenOff(v) }
     fun setPauseMedia(v: Boolean) = edit { setPauseMedia(v) }
     fun setRemindWhenOff(v: Boolean) = edit { setRemindWhenOff(v) }
     fun setRemindWhenOffHours(v: Int) = edit { setRemindWhenOffHours(v) }

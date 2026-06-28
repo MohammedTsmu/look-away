@@ -24,9 +24,9 @@ android {
         minSdk = 26
         targetSdk = 35
         // Versioning scheme (see CHANGELOG.md): MAJOR.MINOR.PATCH where
-        // MINOR = number of features (15), PATCH = enhancement passes (3).
-        versionCode = 11503
-        versionName = "1.15.3"
+        // MINOR = number of features (15), PATCH = enhancement passes (4).
+        versionCode = 11504
+        versionName = "1.15.4"
 
         vectorDrawables { useSupportLibrary = true }
     }

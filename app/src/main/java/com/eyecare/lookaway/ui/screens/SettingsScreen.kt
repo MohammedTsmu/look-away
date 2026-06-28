@@ -116,6 +116,12 @@ fun SettingsScreen(
                     onChange = viewModel::setDim,
                 )
                 SwitchRow(
+                    title = stringResource(R.string.settings_screen_off),
+                    subtitle = stringResource(R.string.settings_screen_off_desc),
+                    checked = s.pauseWhenScreenOff,
+                    onChange = viewModel::setPauseWhenScreenOff,
+                )
+                SwitchRow(
                     title = stringResource(R.string.settings_pause_media),
                     subtitle = stringResource(R.string.settings_pause_media_desc),
                     checked = s.pauseMediaOnBreak,

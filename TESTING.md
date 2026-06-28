@@ -8,7 +8,11 @@
 - `./gradlew lintDebug` — Android Lint (0 errors).
 - `./gradlew assembleDebug` — produces `app/build/outputs/apk/debug/app-debug.apk`.
 
-CI runs all three on every push (see `.github/workflows/android.yml`).
+Run all three locally before tagging a release:
+
+```bash
+./gradlew assembleDebug lintDebug testDebugUnitTest
+```
 
 ## Try it on a real device (fastest)
 

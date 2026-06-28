@@ -6,10 +6,13 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
+import com.eyecare.lookaway.receiver.ScreenReceiver
 import android.provider.Settings as AndroidSettings
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -37,6 +40,7 @@ class ReminderService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var repo: SettingsRepository
     private var started = false
+    private val screenReceiver = ScreenReceiver()
 
     override fun onCreate() {
         super.onCreate()
@@ -44,6 +48,20 @@ class ReminderService : Service() {
         wireEngine()
         observeSettings()
         observeState()
+        registerScreenReceiver()
+    }
+
+    private fun registerScreenReceiver() {
+        // Seed the current state, then listen for changes.
+        val pm = getSystemService(PowerManager::class.java)
+        ReminderEngine.setScreenOn(pm?.isInteractive ?: true)
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
+        }
+        ContextCompat.registerReceiver(
+            this, screenReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -226,6 +244,9 @@ class ReminderService : Service() {
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setShowWhen(false)
+            // Keep the ongoing status off the lock screen; it's only useful
+            // while the device is unlocked and in use.
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
 
@@ -285,6 +306,7 @@ class ReminderService : Service() {
 
     override fun onDestroy() {
         scope.cancel()
+        runCatching { unregisterReceiver(screenReceiver) }
         ReminderEngine.onShowBreak = null
         ReminderEngine.onBreakEnd = null
         ReminderEngine.onTick = null
