@@ -64,6 +64,7 @@ class ReminderService : Service() {
             ACTION_BREAK_NOW -> ReminderEngine.breakNow()
             ACTION_START, null -> ensureRunning()
         }
+        ExternalControls.refreshAll(this)
         return START_STICKY
     }
 
@@ -93,6 +94,7 @@ class ReminderService : Service() {
             ReminderScheduler.scheduleOffReminder(this, settings.remindWhenOffHours)
         }
         started = false
+        ExternalControls.refreshAll(this)
         stopForegroundCompat()
         stopSelf()
     }
@@ -102,7 +104,10 @@ class ReminderService : Service() {
     private fun wireEngine() {
         ReminderEngine.onShowBreak = { onBreakStarted() }
         ReminderEngine.onBreakEnd = { onBreakEnded() }
-        ReminderEngine.onTick = { refreshStatusNotification() }
+        ReminderEngine.onTick = {
+            refreshStatusNotification()
+            ExternalControls.refreshWidget(this)
+        }
     }
 
     private fun observeSettings() {

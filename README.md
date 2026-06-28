@@ -19,6 +19,9 @@ rest your eyes.
 - **Never silently forgotten**: instead of a hard Stop you can **pause for
   30 min / 1 h / 2 h / until morning** (auto-resumes), and turning it off fully
   schedules a gentle **"eye-care is off" reminder** so it doesn't stay off forever.
+- **One-tap controls everywhere**: a **Quick Settings tile** (start / toggle
+  pause from the notification shade) and a **home-screen widget** with Start,
+  Pause/Resume, and Stop.
 - **Starts after reboot** and **when you open the app** (both optional).
 - **Reliable timing** via an AlarmManager watchdog that revives the service if the
   system kills it.

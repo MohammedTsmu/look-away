@@ -61,3 +61,7 @@ Then `./gradlew installDebug` and launch the app.
       "Paused — resumes at HH:mm" and auto-resumes.
 - [ ] **Turn off completely** with "Remind me it's off" on → after the configured
       delay, the "Eye-care is off" nudge appears; its **Turn on** action restarts it.
+- [ ] Add the **home-screen widget** (long-press home → Widgets → Look Away):
+      Start/Pause/Resume/Stop work and the status line tracks state.
+- [ ] Add the **Quick Settings tile** (edit shade tiles → Look Away): one tap
+      starts it, the next toggles pause; the subtitle reflects Off/Running/Paused.

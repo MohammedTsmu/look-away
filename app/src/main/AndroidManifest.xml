@@ -95,6 +95,30 @@
             </intent-filter>
         </receiver>
 
+        <!-- One-tap Quick Settings tile (start / toggle-pause). -->
+        <service
+            android:name=".tile.PauseTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_eye"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Home-screen control widget. -->
+        <receiver
+            android:name=".widget.LookAwayWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info" />
+        </receiver>
+
         <receiver
             android:name=".receiver.AlarmReceiver"
             android:enabled="true"

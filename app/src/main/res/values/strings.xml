@@ -24,6 +24,23 @@
     <string name="nudge_off_text">Look Away has been off for a while. Tap to protect your eyes again.</string>
     <string name="action_turn_on">Turn on</string>
 
+    <!-- Quick Settings tile -->
+    <string name="tile_label">Look Away</string>
+    <string name="tile_off">Off</string>
+    <string name="tile_running">Protecting eyes</string>
+    <string name="tile_paused">Paused</string>
+
+    <!-- Home-screen widget -->
+    <string name="widget_description">One-tap start, pause, and stop for the 20·20·20 reminder.</string>
+    <string name="widget_status_off">Tap Start to protect your eyes</string>
+    <string name="widget_status_running">Next break in %1$s</string>
+    <string name="widget_status_break">Look 20 ft away</string>
+    <string name="widget_status_paused">Paused</string>
+    <string name="widget_start">Start</string>
+    <string name="widget_pause">Pause</string>
+    <string name="widget_resume">Resume</string>
+    <string name="widget_stop">Stop</string>
+
     <string name="action_pause">Pause</string>
     <string name="action_resume">Resume</string>
     <string name="action_stop">Stop</string>
