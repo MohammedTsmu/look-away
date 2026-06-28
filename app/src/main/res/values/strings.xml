@@ -74,7 +74,7 @@
     <string name="settings_strict">Strict mode</string>
     <string name="settings_strict_desc">Hide the Skip button so you actually take the break</string>
     <string name="settings_pause_media">Pause video &amp; music on breaks</string>
-    <string name="settings_pause_media_desc">Pauses YouTube, Netflix, Cinemana, music… during a break and resumes after. Needs notification access.</string>
+    <string name="settings_pause_media_desc">Pauses video &amp; music during a break and resumes after. Grant notification access for the most reliable pausing (e.g. YouTube); other players are paused via audio focus.</string>
     <string name="settings_feedback">Feedback</string>
     <string name="settings_sound">Play sound</string>
     <string name="settings_vibrate">Vibrate</string>

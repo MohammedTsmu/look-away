@@ -13,9 +13,11 @@ rest your eyes.
   notification showing the time until your next break.
 - **Full-screen break reminder** with a calming countdown ring, sound, and
   vibration — shown even over the lock screen.
-- **Pauses video & music during a break and resumes after** — YouTube, Netflix,
-  Cinemana, podcasts, music, etc. (via media-session control; needs notification
-  access).
+- **Pauses video & music during a break and resumes after** — uses media-session
+  control (precise; for apps like YouTube/Spotify, needs notification access)
+  **plus an audio-focus fallback** so players that don't expose a media session
+  are paused/ducked too. (A few apps with fully custom players honor neither —
+  an OS limitation.)
 - **Never silently forgotten**: instead of a hard Stop you can **pause for
   30 min / 1 h / 2 h / until morning** (auto-resumes), and turning it off fully
   schedules a gentle **"eye-care is off" reminder** so it doesn't stay off forever.

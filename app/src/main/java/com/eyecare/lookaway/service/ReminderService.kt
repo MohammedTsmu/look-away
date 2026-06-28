@@ -88,7 +88,7 @@ class ReminderService : Service() {
         val settings = ReminderEngine.settings
         ReminderEngine.stop()
         NotificationManagerCompat.from(this).cancel(Notifications.ID_BREAK)
-        MediaPauser.forget()
+        MediaPauser.forget(this)
         // So a turned-off app doesn't stay forgotten, schedule a gentle nudge.
         if (settings.remindWhenOff) {
             ReminderScheduler.scheduleOffReminder(this, settings.remindWhenOffHours)
