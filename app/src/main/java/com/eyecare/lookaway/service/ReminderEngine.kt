@@ -64,6 +64,7 @@ object ReminderEngine {
     // One-shot control flags consumed by the running loop.
     @Volatile private var skipRequested = false
     @Volatile private var triggerBreakNow = false
+    @Volatile private var restartRequested = false
 
     fun start(initial: Settings) {
         settings = initial
@@ -112,12 +113,25 @@ object ReminderEngine {
     /** Jump straight to a break from the working phase (used by "preview"). */
     fun breakNow() { if (_state.value.phase == Phase.WORKING) triggerBreakNow = true }
 
+    /**
+     * Update settings live. If the work interval changes mid-countdown, restart
+     * the current working phase so the main screen reflects it immediately.
+     */
+    fun applySettings(newSettings: Settings) {
+        val old = settings
+        settings = newSettings
+        if (_state.value.phase == Phase.WORKING && old.workSeconds != newSettings.workSeconds) {
+            restartRequested = true
+        }
+    }
+
     private suspend fun runLoop() {
         while (scope?.isActive == true) {
             // ---- WORKING ----
             val work = settings.workSeconds
             val result = countdown(Phase.WORKING, work)
             if (result == CONTROL_STOP) break
+            if (result == CONTROL_RESTART) continue // interval changed; re-read it
 
             // ---- BREAK ----
             onShowBreak?.invoke()
@@ -140,6 +154,7 @@ object ReminderEngine {
         var lastWhole = total
         skipRequested = false
         triggerBreakNow = false
+        restartRequested = false
 
         while (remainingMs > 0) {
             if (scope?.isActive != true) return CONTROL_STOP
@@ -148,6 +163,7 @@ object ReminderEngine {
             val st = _state.value
             if (phase == Phase.BREAK && skipRequested) return CONTROL_SKIP
             if (phase == Phase.WORKING && triggerBreakNow) return CONTROL_DONE
+            if (phase == Phase.WORKING && restartRequested) return CONTROL_RESTART
 
             val quiet = phase == Phase.WORKING && isInQuietHours()
             if (st.inQuietHours != quiet) {
@@ -191,4 +207,5 @@ object ReminderEngine {
     private const val CONTROL_DONE = 0
     private const val CONTROL_SKIP = 1
     private const val CONTROL_STOP = 2
+    private const val CONTROL_RESTART = 3
 }

@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import com.eyecare.lookaway.R
 import com.eyecare.lookaway.data.SettingsRepository
 import com.eyecare.lookaway.media.MediaPauser
+import com.eyecare.lookaway.overlay.BreakOverlay
 import com.eyecare.lookaway.ui.BreakActivity
 import com.eyecare.lookaway.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
@@ -109,6 +110,7 @@ class ReminderService : Service() {
     private fun stopEverything() {
         val settings = ReminderEngine.settings
         ReminderEngine.stop()
+        BreakOverlay.hide(this)
         NotificationManagerCompat.from(this).cancel(Notifications.ID_BREAK)
         MediaPauser.forget(this)
         // So a turned-off app doesn't stay forgotten, schedule a gentle nudge.
@@ -129,12 +131,16 @@ class ReminderService : Service() {
         ReminderEngine.onTick = {
             refreshStatusNotification()
             ExternalControls.refreshWidget(this)
+            if (BreakOverlay.isShowing()) {
+                val st = ReminderEngine.state.value
+                BreakOverlay.update(st.secondsRemaining, 1f - st.progress.coerceIn(0f, 1f))
+            }
         }
     }
 
     private fun observeSettings() {
         scope.launch {
-            repo.flow.collect { ReminderEngine.settings = it }
+            repo.flow.collect { ReminderEngine.applySettings(it) }
         }
     }
 
@@ -154,17 +160,27 @@ class ReminderService : Service() {
     private fun onBreakStarted() {
         val s = ReminderEngine.settings
         if (s.pauseMediaOnBreak) MediaPauser.pauseActive(this)
-        if (s.fullScreenBreak) {
+        if (!s.fullScreenBreak) {
+            postBreakNotification(fullScreen = false)
+            Feedback.playBreakStart(this, s.sound, s.vibrate, s.soundUri)
+            return
+        }
+        // Prefer our own overlay window — it shows reliably even on OEMs that
+        // block background activity starts (MIUI etc.). Fall back to the
+        // full-screen-intent notification + Activity when overlay isn't granted.
+        if (AndroidSettings.canDrawOverlays(this)) {
+            BreakOverlay.show(this, showSkip = !s.strictMode)
+            BreakOverlay.update(s.breakSeconds, 1f)
+            Feedback.playBreakStart(this, s.sound, s.vibrate, s.soundUri)
+        } else {
             postBreakNotification(fullScreen = true)
             launchBreakActivityIfPossible()
             // BreakActivity owns sound/vibration so it can sync with its UI.
-        } else {
-            postBreakNotification(fullScreen = false)
-            Feedback.playBreakStart(this, s.sound, s.vibrate, s.soundUri)
         }
     }
 
     private fun onBreakEnded() {
+        BreakOverlay.hide(this)
         NotificationManagerCompat.from(this).cancel(Notifications.ID_BREAK)
         // Resume whatever we paused (no-op if nothing was paused).
         MediaPauser.resume(this)

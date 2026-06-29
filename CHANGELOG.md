@@ -8,8 +8,8 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.17.5` = generation 1, **17 features**,
-**5 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
+So the version literally encodes the scope: `1.17.6` = generation 1, **17 features**,
+**6 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
 ## Feature inventory (17)
 
@@ -42,6 +42,25 @@ So the version literally encodes the scope: `1.17.5` = generation 1, **17 featur
 | 3 | Audio-focus fallback so players without a media session (e.g. Cinemana) also pause/resume |
 | 4 | Screen-off awareness — only count screen-on time; no breaks while locked/asleep; ongoing status hidden from the lock screen |
 | 5 | Full-screen break reliability (request USE_FULL_SCREEN_INTENT) + removed the forced screen-brightness change during breaks |
+| 6 | Live settings (interval changes restart the countdown immediately) + overlay-window break that shows full-screen even on OEMs that block background activity starts (MIUI) |
+
+---
+
+## 1.17.6
+
+- **Live timing changes:** changing the work interval (or break length) now
+  restarts the current countdown immediately, so the main screen reflects it at
+  once instead of waiting for the next cycle.
+- **Break shows full-screen on Xiaomi/MIUI:** the break is now drawn as an
+  **overlay window** (when "Display over other apps" is granted) instead of
+  launching an Activity. MIUI blocks background activity starts, which is why the
+  break previously appeared only as a notification you had to tap. The overlay is
+  honored reliably; the notification path remains a fallback when overlay isn't
+  granted.
+- **Media still pauses without notification access:** on devices where MIUI
+  blocks notification access (a "restricted setting"), video/music is still paused
+  during breaks via audio focus — the notification-access grant only adds precise
+  control for apps like YouTube.
 
 ---
 
