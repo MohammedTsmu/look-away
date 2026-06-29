@@ -8,8 +8,8 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.17.7` = generation 1, **17 features**,
-**7 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
+So the version literally encodes the scope: `1.17.8` = generation 1, **17 features**,
+**8 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
 ## Feature inventory (17)
 
@@ -44,6 +44,16 @@ So the version literally encodes the scope: `1.17.7` = generation 1, **17 featur
 | 5 | Full-screen break reliability (request USE_FULL_SCREEN_INTENT) + removed the forced screen-brightness change during breaks |
 | 6 | Live settings (interval changes restart the countdown immediately) + overlay-window break that shows full-screen even on OEMs that block background activity starts (MIUI) |
 | 7 | Break is never invisible — always post the break notification as a fallback even when the overlay path is taken/fails; service owns sound/vibration (no double feedback) |
+| 8 | Layout direction (RTL/LTR) flips instantly on language change, driven from the active locale |
+
+---
+
+## 1.17.8
+
+- **Fix — switching language didn't flip RTL/LTR instantly:** the text changed but
+  the layout direction only updated after leaving and re-entering the screen.
+  Layout direction is now derived from the active locale and provided to Compose
+  directly, so Arabic ↔ English flips the direction immediately on change.
 
 ---
 

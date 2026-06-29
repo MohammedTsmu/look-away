@@ -256,7 +256,12 @@ fun SettingsScreen(
                 val applyLang: (String) -> Unit = { lang ->
                     if (lang != currentLang) {
                         com.eyecare.lookaway.util.LocaleManager.setLanguage(context, lang)
-                        (context as? android.app.Activity)?.recreate()
+                        // Unwrap to the hosting Activity (context may be a wrapper).
+                        var c: android.content.Context? = context
+                        while (c is android.content.ContextWrapper && c !is android.app.Activity) {
+                            c = c.baseContext
+                        }
+                        (c as? android.app.Activity)?.recreate()
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
