@@ -22,9 +22,9 @@ class SettingsRepository(private val context: Context) {
         val workMinutes = intPreferencesKey("work_minutes")
         val breakSeconds = intPreferencesKey("break_seconds")
         val sound = booleanPreferencesKey("sound")
+        val soundUri = androidx.datastore.preferences.core.stringPreferencesKey("sound_uri")
         val vibrate = booleanPreferencesKey("vibrate")
         val fullScreen = booleanPreferencesKey("full_screen")
-        val dim = booleanPreferencesKey("dim_screen")
         val strict = booleanPreferencesKey("strict_mode")
         val pauseScreenOff = booleanPreferencesKey("pause_screen_off")
         val pauseMedia = booleanPreferencesKey("pause_media")
@@ -47,9 +47,9 @@ class SettingsRepository(private val context: Context) {
             workMinutes = this[Keys.workMinutes] ?: d.workMinutes,
             breakSeconds = this[Keys.breakSeconds] ?: d.breakSeconds,
             sound = this[Keys.sound] ?: d.sound,
+            soundUri = this[Keys.soundUri] ?: d.soundUri,
             vibrate = this[Keys.vibrate] ?: d.vibrate,
             fullScreenBreak = this[Keys.fullScreen] ?: d.fullScreenBreak,
-            dimScreen = this[Keys.dim] ?: d.dimScreen,
             strictMode = this[Keys.strict] ?: d.strictMode,
             pauseWhenScreenOff = this[Keys.pauseScreenOff] ?: d.pauseWhenScreenOff,
             pauseMediaOnBreak = this[Keys.pauseMedia] ?: d.pauseMediaOnBreak,
@@ -68,9 +68,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setWorkMinutes(v: Int) = edit { it[Keys.workMinutes] = v.coerceIn(1, 180) }
     suspend fun setBreakSeconds(v: Int) = edit { it[Keys.breakSeconds] = v.coerceIn(5, 600) }
     suspend fun setSound(v: Boolean) = edit { it[Keys.sound] = v }
+    suspend fun setSoundUri(v: String) = edit { it[Keys.soundUri] = v }
     suspend fun setVibrate(v: Boolean) = edit { it[Keys.vibrate] = v }
     suspend fun setFullScreen(v: Boolean) = edit { it[Keys.fullScreen] = v }
-    suspend fun setDim(v: Boolean) = edit { it[Keys.dim] = v }
     suspend fun setStrict(v: Boolean) = edit { it[Keys.strict] = v }
     suspend fun setPauseWhenScreenOff(v: Boolean) = edit { it[Keys.pauseScreenOff] = v }
     suspend fun setPauseMedia(v: Boolean) = edit { it[Keys.pauseMedia] = v }

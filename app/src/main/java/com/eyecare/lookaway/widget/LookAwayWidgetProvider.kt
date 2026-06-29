@@ -44,29 +44,32 @@ class LookAwayWidgetProvider : AppWidgetProvider() {
         private fun updateOne(context: Context, manager: AppWidgetManager, id: Int) {
             val enabled = RunState.isEnabled(context)
             val state = ReminderEngine.state.value
+            // Localized context for the user-visible strings; RemoteViews still
+            // needs the real package name (unchanged by the locale wrapper).
+            val l = com.eyecare.lookaway.util.LocaleManager.wrap(context)
             val rv = RemoteViews(context.packageName, R.layout.widget_lookaway)
 
             val status = when {
-                !enabled -> context.getString(R.string.widget_status_off)
-                state.paused -> context.getString(R.string.widget_status_paused)
-                state.phase == Phase.BREAK -> context.getString(R.string.widget_status_break)
-                state.isRunning -> context.getString(
+                !enabled -> l.getString(R.string.widget_status_off)
+                state.paused -> l.getString(R.string.widget_status_paused)
+                state.phase == Phase.BREAK -> l.getString(R.string.widget_status_break)
+                state.isRunning -> l.getString(
                     R.string.widget_status_running,
                     ReminderService.formatClock(state.secondsRemaining),
                 )
-                else -> context.getString(R.string.tile_running)
+                else -> l.getString(R.string.tile_running)
             }
             rv.setTextViewText(R.id.tvStatus, status)
 
             if (!enabled) {
                 rv.setViewVisibility(R.id.btnStop, View.GONE)
-                rv.setTextViewText(R.id.btnPrimary, context.getString(R.string.widget_start))
+                rv.setTextViewText(R.id.btnPrimary, l.getString(R.string.widget_start))
                 rv.setOnClickPendingIntent(R.id.btnPrimary, broadcast(context, ReminderService.ACTION_START, 1))
             } else {
                 rv.setViewVisibility(R.id.btnStop, View.VISIBLE)
                 rv.setTextViewText(
                     R.id.btnPrimary,
-                    context.getString(if (state.paused) R.string.widget_resume else R.string.widget_pause),
+                    l.getString(if (state.paused) R.string.widget_resume else R.string.widget_pause),
                 )
                 rv.setOnClickPendingIntent(R.id.btnPrimary, broadcast(context, ReminderService.ACTION_TOGGLE, 2))
                 rv.setOnClickPendingIntent(R.id.btnStop, broadcast(context, ReminderService.ACTION_STOP, 3))

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Look Away</string>
+    <string name="app_tagline">قاعدة العناية بالعين 20·20·20 تلقائيًا</string>
+
+    <!-- Notifications -->
+    <string name="channel_status_name">حالة التذكير</string>
+    <string name="channel_status_desc">إشعار مستمر أثناء عمل التذكير</string>
+    <string name="channel_break_name">تنبيهات الاستراحة</string>
+    <string name="channel_break_desc">التنبيه الذي يملأ الشاشة ويذكّرك بالنظر بعيدًا</string>
+
+    <string name="notif_running_title">‏Look Away يحمي عينيك</string>
+    <string name="notif_next_break">الاستراحة التالية بعد %1$s</string>
+    <string name="notif_paused">متوقّف مؤقتًا — اضغط للاستئناف</string>
+    <string name="notif_break_title">حان وقت النظر بعيدًا</string>
+    <string name="notif_break_text">أرِح عينيك لمدة %1$d ثانية</string>
+    <string name="notif_paused_until">متوقّف مؤقتًا — يُستأنف في %1$s</string>
+
+    <!-- Media + nudge -->
+    <string name="media_listener_label">‏Look Away — إيقاف الوسائط أثناء الاستراحات</string>
+    <string name="channel_nudge_name">تذكيرات لطيفة</string>
+    <string name="channel_nudge_desc">يذكّرك إذا تم إيقاف العناية بالعين</string>
+    <string name="nudge_off_title">العناية بالعين متوقفة</string>
+    <string name="nudge_off_text">‏Look Away متوقف منذ فترة. اضغط لحماية عينيك مجددًا.</string>
+    <string name="action_turn_on">تشغيل</string>
+
+    <!-- Quick Settings tile -->
+    <string name="tile_label">Look Away</string>
+    <string name="tile_off">متوقف</string>
+    <string name="tile_running">يحمي عينيك</string>
+    <string name="tile_paused">متوقّف مؤقتًا</string>
+
+    <!-- Home-screen widget -->
+    <string name="widget_description">تشغيل وإيقاف مؤقت وإيقاف بضغطة واحدة لتذكير 20·20·20.</string>
+    <string name="widget_status_off">اضغط «ابدأ» لحماية عينيك</string>
+    <string name="widget_status_running">الاستراحة التالية بعد %1$s</string>
+    <string name="widget_status_break">انظر إلى مسافة 6 أمتار</string>
+    <string name="widget_status_paused">متوقّف مؤقتًا</string>
+    <string name="widget_start">ابدأ</string>
+    <string name="widget_pause">إيقاف مؤقت</string>
+    <string name="widget_resume">استئناف</string>
+    <string name="widget_stop">إيقاف</string>
+
+    <string name="action_pause">إيقاف مؤقت</string>
+    <string name="action_resume">استئناف</string>
+    <string name="action_stop">إيقاف</string>
+    <string name="action_skip">تخطٍّ</string>
+    <string name="action_done">انتهيت</string>
+
+    <!-- Break screen -->
+    <string name="break_headline">انظر إلى مسافة 6 أمتار</string>
+    <string name="break_sub">أرخِ عينيك وركّز على شيء بعيد للحظة.</string>
+
+    <!-- Home -->
+    <string name="home_state_idle">التذكيرات متوقفة</string>
+    <string name="home_state_running">يحمي عينيك</string>
+    <string name="home_state_paused">متوقّف مؤقتًا</string>
+    <string name="home_start">ابدأ</string>
+    <string name="home_stop">إيقاف</string>
+    <string name="home_pause">إيقاف مؤقت</string>
+    <string name="home_resume">استئناف</string>
+    <string name="home_next_break">الاستراحة التالية</string>
+    <string name="home_cycles_today">عدد الاستراحات</string>
+    <string name="home_test_break">معاينة استراحة الآن</string>
+
+    <!-- Settings -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_timing">التوقيت</string>
+    <string name="settings_work_interval">مدة العمل</string>
+    <string name="settings_break_length">مدة الاستراحة</string>
+    <string name="settings_behavior">السلوك</string>
+    <string name="settings_fullscreen">استراحة بملء الشاشة</string>
+    <string name="settings_fullscreen_desc">السيطرة على الشاشة أثناء الاستراحة بدلًا من مجرد إشعار</string>
+    <string name="settings_strict">الوضع الصارم</string>
+    <string name="settings_strict_desc">إخفاء زر التخطّي لتلتزم بأخذ الاستراحة فعلًا</string>
+    <string name="settings_screen_off">إيقاف مؤقت عند إطفاء الشاشة</string>
+    <string name="settings_screen_off_desc">احتساب الوقت أثناء تشغيل الشاشة فقط — لا تظهر استراحات عندما يكون الجهاز مقفلًا أو نائمًا</string>
+    <string name="settings_pause_media">إيقاف الفيديو والموسيقى أثناء الاستراحات</string>
+    <string name="settings_pause_media_desc">يوقف الفيديو والموسيقى أثناء الاستراحة ويستأنفها بعدها. امنح الوصول إلى الإشعارات للإيقاف الأكثر موثوقية (مثل يوتيوب)؛ تُوقَف المشغّلات الأخرى عبر التركيز الصوتي.</string>
+    <string name="settings_feedback">التنبيهات</string>
+    <string name="settings_sound">تشغيل الصوت</string>
+    <string name="settings_sound_pick">صوت الاستراحة</string>
+    <string name="sound_default">افتراضي</string>
+    <string name="settings_vibrate">اهتزاز</string>
+    <string name="settings_startup">بدء التشغيل</string>
+    <string name="settings_boot">البدء بعد إعادة التشغيل</string>
+    <string name="settings_boot_desc">استئناف التذكيرات تلقائيًا عند إعادة تشغيل الجهاز</string>
+    <string name="settings_autostart">البدء عند فتح التطبيق</string>
+    <string name="settings_quiet">ساعات الهدوء</string>
+    <string name="settings_quiet_enable">تفعيل ساعات الهدوء</string>
+    <string name="settings_quiet_desc">إيقاف التذكيرات خلال هذه الفترة</string>
+    <string name="settings_quiet_from">من</string>
+    <string name="settings_quiet_to">إلى</string>
+    <string name="settings_when_off">عند الإيقاف</string>
+    <string name="settings_remind_off">ذكّرني بأنه متوقف</string>
+    <string name="settings_remind_off_desc">إذا أوقفت التذكيرات، ننبّهك لاحقًا حتى لا تنسى</string>
+    <string name="settings_remind_off_delay">التذكير بعد</string>
+
+    <!-- Turn-off bottom sheet -->
+    <string name="sheet_title">إيقاف أم تأجيل؟</string>
+    <string name="sheet_sub">التأجيل يعيد التشغيل تلقائيًا.</string>
+    <string name="sheet_pause_30m">تأجيل 30 دقيقة</string>
+    <string name="sheet_pause_1h">تأجيل ساعة</string>
+    <string name="sheet_pause_2h">تأجيل ساعتين</string>
+    <string name="sheet_pause_morning">تأجيل حتى صباح الغد</string>
+    <string name="sheet_turn_off">إيقاف كامل</string>
+    <string name="sheet_turn_off_note">سنذكّرك بعد %1$d ساعة حتى لا يبقى متوقفًا للأبد</string>
+    <string name="sheet_turn_off_note_plain">إيقاف التذكيرات</string>
+    <string name="hours_short">%1$d ساعة</string>
+
+    <string name="settings_appearance">المظهر</string>
+    <string name="settings_language">اللغة</string>
+    <string name="lang_system">لغة النظام</string>
+    <string name="lang_english">English</string>
+    <string name="lang_arabic">العربية</string>
+    <string name="settings_theme">السمة</string>
+    <string name="settings_accent">لون التمييز</string>
+    <string name="theme_system">النظام</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+
+    <!-- Permissions onboarding -->
+    <string name="perm_title">بعض الأذونات</string>
+    <string name="perm_sub">امنح هذه الأذونات لتظهر التذكيرات بشكل موثوق.</string>
+    <string name="perm_notif">الإشعارات</string>
+    <string name="perm_notif_desc">إظهار الحالة المستمرة وتنبيهات الاستراحة</string>
+    <string name="perm_overlay">العرض فوق التطبيقات الأخرى</string>
+    <string name="perm_overlay_desc">إظهار الاستراحة بملء الشاشة، حتى فوق التطبيقات الأخرى</string>
+    <string name="perm_alarm">المنبّهات الدقيقة</string>
+    <string name="perm_alarm_desc">تشغيل الاستراحات في الوقت المناسب تمامًا</string>
+    <string name="perm_battery">تجاهل تحسين البطارية</string>
+    <string name="perm_battery_desc">الاستمرار في الخلفية دون أن يُغلق التطبيق</string>
+    <string name="perm_media">إيقاف الوسائط أثناء الاستراحات</string>
+    <string name="perm_media_desc">امنح الوصول إلى الإشعارات لتتمكن الاستراحات من إيقاف الفيديو والموسيقى</string>
+    <string name="perm_fullscreen">إظهار الاستراحة بملء الشاشة</string>
+    <string name="perm_fullscreen_desc">اسمح للاستراحة بالسيطرة على الشاشة — وإلا ستظهر كإشعار فقط</string>
+    <string name="perm_grant">منح</string>
+</resources>

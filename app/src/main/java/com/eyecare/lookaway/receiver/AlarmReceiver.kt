@@ -42,8 +42,9 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     @android.annotation.SuppressLint("MissingPermission") // guarded by canPost()
-    private fun postOffNudge(context: Context) {
-        if (!canPost(context)) return
+    private fun postOffNudge(rawContext: Context) {
+        if (!canPost(rawContext)) return
+        val context = com.eyecare.lookaway.util.LocaleManager.wrap(rawContext)
 
         val open = PendingIntent.getActivity(
             context, 20,

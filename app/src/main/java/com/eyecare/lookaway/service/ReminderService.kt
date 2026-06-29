@@ -42,6 +42,10 @@ class ReminderService : Service() {
     private var started = false
     private val screenReceiver = ScreenReceiver()
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.eyecare.lookaway.util.LocaleManager.wrap(newBase))
+    }
+
     override fun onCreate() {
         super.onCreate()
         repo = SettingsRepository(applicationContext)
@@ -156,7 +160,7 @@ class ReminderService : Service() {
             // BreakActivity owns sound/vibration so it can sync with its UI.
         } else {
             postBreakNotification(fullScreen = false)
-            Feedback.playBreakStart(this, s.sound, s.vibrate)
+            Feedback.playBreakStart(this, s.sound, s.vibrate, s.soundUri)
         }
     }
 

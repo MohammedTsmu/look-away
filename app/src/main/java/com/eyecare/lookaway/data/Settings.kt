@@ -11,9 +11,10 @@ data class Settings(
     val workMinutes: Int = 20,
     val breakSeconds: Int = 20,
     val sound: Boolean = true,
+    /** Notification-sound URI for the break chime; empty = system default. */
+    val soundUri: String = "",
     val vibrate: Boolean = true,
     val fullScreenBreak: Boolean = true,
-    val dimScreen: Boolean = true,
     val strictMode: Boolean = false,
     val pauseWhenScreenOff: Boolean = true,
     val pauseMediaOnBreak: Boolean = true,

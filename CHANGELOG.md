@@ -8,10 +8,10 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.15.3` = generation 1, **15 features**,
-**3 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
+So the version literally encodes the scope: `1.17.5` = generation 1, **17 features**,
+**5 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
-## Feature inventory (15)
+## Feature inventory (17)
 
 | # | Feature |
 |---|---------|
@@ -30,6 +30,8 @@ So the version literally encodes the scope: `1.15.3` = generation 1, **15 featur
 | 13 | "Eye-care is off" reminder nudge so it's never silently forgotten |
 | 14 | Quick Settings tile (one-tap start / toggle pause) |
 | 15 | Home-screen widget (Start / Pause / Resume / Stop) |
+| 16 | Arabic localization + in-app language switch (System / English / العربية) with RTL |
+| 17 | Selectable break sound (pick any notification tone) |
 
 ## Enhancement passes (3)
 
@@ -39,6 +41,25 @@ So the version literally encodes the scope: `1.15.3` = generation 1, **15 featur
 | 2 | Unit tests + GitHub Actions CI + testing docs |
 | 3 | Audio-focus fallback so players without a media session (e.g. Cinemana) also pause/resume |
 | 4 | Screen-off awareness — only count screen-on time; no breaks while locked/asleep; ongoing status hidden from the lock screen |
+| 5 | Full-screen break reliability (request USE_FULL_SCREEN_INTENT) + removed the forced screen-brightness change during breaks |
+
+---
+
+## 1.17.5
+
+- **Arabic + language switch:** full Arabic translation with RTL layout, plus a
+  language selector in Settings (System / English / العربية). On Arabic devices
+  the app now shows Arabic automatically.
+- **Selectable break sound:** "Play sound" toggle now has a **Break sound** row
+  that opens the system tone picker — choose any notification sound.
+- **Fix — break only appeared as a notification on some devices:** the break can
+  now request the *full-screen* permission (USE_FULL_SCREEN_INTENT) so it takes
+  over the screen on Android 14+; the onboarding card surfaces it when needed.
+  (Granting "Display over other apps" remains the most reliable path on
+  locked-down OEMs like MIUI.)
+- **Fix — brightness changed during breaks:** removed the forced screen-brightness
+  override (it could *raise* brightness in dark rooms). The break screen is
+  already a dark, low-strain view.
 
 ---
 

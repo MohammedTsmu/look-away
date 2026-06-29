@@ -11,19 +11,23 @@ import androidx.core.content.getSystemService
 /** Plays the break chime + a vibration pattern, honoring the user's toggles. */
 object Feedback {
 
-    fun playBreakStart(context: Context, sound: Boolean, vibrate: Boolean) {
-        if (sound) playChime(context)
+    fun playBreakStart(context: Context, sound: Boolean, vibrate: Boolean, soundUri: String = "") {
+        if (sound) playChime(context, soundUri)
         if (vibrate) vibrate(context, longArrayOf(0, 220, 120, 220))
     }
 
-    fun playBreakEnd(context: Context, sound: Boolean, vibrate: Boolean) {
+    fun playBreakEnd(context: Context, sound: Boolean, vibrate: Boolean, soundUri: String = "") {
         if (vibrate) vibrate(context, longArrayOf(0, 120))
-        if (sound) playChime(context)
+        if (sound) playChime(context, soundUri)
     }
 
-    private fun playChime(context: Context) {
+    private fun playChime(context: Context, soundUri: String) {
         runCatching {
-            val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            val uri = if (soundUri.isBlank()) {
+                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            } else {
+                android.net.Uri.parse(soundUri)
+            }
             RingtoneManager.getRingtone(context, uri)?.play()
         }
     }

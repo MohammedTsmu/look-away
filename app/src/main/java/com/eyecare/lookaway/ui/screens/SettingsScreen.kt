@@ -1,6 +1,12 @@
 package com.eyecare.lookaway.ui.screens
 
 import android.app.TimePickerDialog
+import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -57,6 +63,34 @@ fun SettingsScreen(
     val s by viewModel.settings.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    val soundPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val uri: Uri? = result.data?.let {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    it.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI, Uri::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    it.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+                }
+            }
+            viewModel.setSoundUri(uri?.toString() ?: "")
+        }
+    }
+
+    fun openSoundPicker() {
+        val current = s.soundUri.takeIf { it.isNotBlank() }?.let { Uri.parse(it) }
+            ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+            putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+            putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, current)
+        }
+        runCatching { soundPicker.launch(intent) }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -110,12 +144,6 @@ fun SettingsScreen(
                     onChange = viewModel::setStrict,
                 )
                 SwitchRow(
-                    title = stringResource(R.string.settings_dim),
-                    subtitle = null,
-                    checked = s.dimScreen,
-                    onChange = viewModel::setDim,
-                )
-                SwitchRow(
                     title = stringResource(R.string.settings_screen_off),
                     subtitle = stringResource(R.string.settings_screen_off_desc),
                     checked = s.pauseWhenScreenOff,
@@ -143,6 +171,13 @@ fun SettingsScreen(
                     checked = s.sound,
                     onChange = viewModel::setSound,
                 )
+                if (s.sound) {
+                    ValueRow(
+                        label = stringResource(R.string.settings_sound_pick),
+                        value = soundName(context, s.soundUri),
+                        onClick = { openSoundPicker() },
+                    )
+                }
                 SwitchRow(
                     title = stringResource(R.string.settings_vibrate),
                     subtitle = null,
@@ -211,6 +246,29 @@ fun SettingsScreen(
 
             // ---- Appearance ----
             Section(stringResource(R.string.settings_appearance)) {
+                Text(
+                    stringResource(R.string.settings_language),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 6.dp),
+                )
+                val currentLang = com.eyecare.lookaway.util.LocaleManager.getLanguage(context)
+                val applyLang: (String) -> Unit = { lang ->
+                    if (lang != currentLang) {
+                        com.eyecare.lookaway.util.LocaleManager.setLanguage(context, lang)
+                        (context as? android.app.Activity)?.recreate()
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ThemeChip(
+                        stringResource(R.string.lang_system),
+                        currentLang == com.eyecare.lookaway.util.LocaleManager.SYSTEM,
+                    ) { applyLang(com.eyecare.lookaway.util.LocaleManager.SYSTEM) }
+                    ThemeChip(stringResource(R.string.lang_english), currentLang == "en") { applyLang("en") }
+                    ThemeChip(stringResource(R.string.lang_arabic), currentLang == "ar") { applyLang("ar") }
+                }
+
+                Spacer(Modifier.height(16.dp))
                 Text(
                     stringResource(R.string.settings_theme),
                     style = MaterialTheme.typography.bodyMedium,
@@ -339,10 +397,37 @@ private fun TimeRow(label: String, minutes: Int, onPicked: (Int) -> Unit) {
     }
 }
 
+@Composable
+private fun ValueRow(label: String, value: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyLarge)
+        Text(
+            value,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ThemeChip(label: String, selected: Boolean, onClick: () -> Unit) {
     FilterChip(selected = selected, onClick = onClick, label = { Text(label) })
+}
+
+/** Human-readable name of the chosen break sound (or "Default"). */
+private fun soundName(context: android.content.Context, soundUri: String): String {
+    if (soundUri.isBlank()) return context.getString(R.string.sound_default)
+    return runCatching {
+        RingtoneManager.getRingtone(context, Uri.parse(soundUri))?.getTitle(context)
+    }.getOrNull() ?: context.getString(R.string.sound_default)
 }
 
 @Composable

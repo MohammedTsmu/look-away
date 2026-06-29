@@ -118,13 +118,15 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             val needMedia = settings.pauseMediaOnBreak && !permissions.mediaAccess
+            val needFullScreen = settings.fullScreenBreak && !permissions.fullScreenIntent
             if (!permissions.allEssentialGranted || !permissions.overlay ||
-                !permissions.batteryUnrestricted || needMedia
+                !permissions.batteryUnrestricted || needMedia || needFullScreen
             ) {
                 Spacer(Modifier.height(8.dp))
                 PermissionCard(
                     permissions = permissions,
                     showMedia = needMedia,
+                    showFullScreen = needFullScreen,
                     onRequestNotifications = onRequestNotifications,
                     onOpenIntent = onOpenIntent,
                 )
@@ -308,6 +310,7 @@ private fun StatCard(modifier: Modifier = Modifier, value: String, label: String
 private fun PermissionCard(
     permissions: PermissionStatus,
     showMedia: Boolean,
+    showFullScreen: Boolean,
     onRequestNotifications: () -> Unit,
     onOpenIntent: (android.content.Intent) -> Unit,
 ) {
@@ -351,6 +354,15 @@ private fun PermissionCard(
                     label = stringResource(R.string.perm_overlay),
                     desc = stringResource(R.string.perm_overlay_desc),
                     onGrant = { onOpenIntent(com.eyecare.lookaway.ui.Permissions.overlayIntent(context)) },
+                )
+            }
+            if (showFullScreen) {
+                PermissionRow(
+                    label = stringResource(R.string.perm_fullscreen),
+                    desc = stringResource(R.string.perm_fullscreen_desc),
+                    onGrant = {
+                        onOpenIntent(com.eyecare.lookaway.ui.Permissions.fullScreenIntentSettingsIntent(context))
+                    },
                 )
             }
             if (!permissions.batteryUnrestricted) {

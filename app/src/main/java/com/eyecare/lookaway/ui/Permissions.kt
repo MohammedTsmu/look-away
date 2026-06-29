@@ -1,6 +1,7 @@
 package com.eyecare.lookaway.ui
 
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -18,8 +19,11 @@ data class PermissionStatus(
     val exactAlarm: Boolean,
     val batteryUnrestricted: Boolean,
     val mediaAccess: Boolean,
+    val fullScreenIntent: Boolean,
 ) {
     val allEssentialGranted: Boolean get() = notifications && exactAlarm
+    /** The break can take over the screen if it can either overlay or fire a full-screen intent. */
+    val canShowFullScreenBreak: Boolean get() = overlay || fullScreenIntent
 }
 
 object Permissions {
@@ -30,7 +34,21 @@ object Permissions {
         exactAlarm = hasExactAlarm(context),
         batteryUnrestricted = isBatteryUnrestricted(context),
         mediaAccess = hasMediaAccess(context),
+        fullScreenIntent = hasFullScreenIntent(context),
     )
+
+    fun hasFullScreenIntent(context: Context): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            context.getSystemService<NotificationManager>()?.canUseFullScreenIntent() ?: false
+        } else true
+
+    fun fullScreenIntentSettingsIntent(context: Context): Intent =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            Intent(
+                Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+                Uri.parse("package:${context.packageName}"),
+            )
+        } else appSettingsIntent(context)
 
     fun hasMediaAccess(context: Context): Boolean =
         com.eyecare.lookaway.media.MediaPauser.hasAccess(context)

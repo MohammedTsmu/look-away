@@ -79,8 +79,9 @@
     <string name="settings_pause_media_desc">Pauses video &amp; music during a break and resumes after. Grant notification access for the most reliable pausing (e.g. YouTube); other players are paused via audio focus.</string>
     <string name="settings_feedback">Feedback</string>
     <string name="settings_sound">Play sound</string>
+    <string name="settings_sound_pick">Break sound</string>
+    <string name="sound_default">Default</string>
     <string name="settings_vibrate">Vibrate</string>
-    <string name="settings_dim">Dim the screen during breaks</string>
     <string name="settings_startup">Startup</string>
     <string name="settings_boot">Start after reboot</string>
     <string name="settings_boot_desc">Resume reminders automatically when the device restarts</string>
@@ -108,6 +109,10 @@
     <string name="hours_short">%1$d h</string>
 
     <string name="settings_appearance">Appearance</string>
+    <string name="settings_language">Language</string>
+    <string name="lang_system">System default</string>
+    <string name="lang_english">English</string>
+    <string name="lang_arabic">العربية</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_accent">Accent color</string>
     <string name="theme_system">System</string>
@@ -127,5 +132,7 @@
     <string name="perm_battery_desc">Keep running in the background without being killed</string>
     <string name="perm_media">Pause media on breaks</string>
     <string name="perm_media_desc">Grant notification access so breaks can pause video &amp; music</string>
+    <string name="perm_fullscreen">Show break full-screen</string>
+    <string name="perm_fullscreen_desc">Allow the break to take over the screen — otherwise it only appears as a notification</string>
     <string name="perm_grant">Grant</string>
 </resources>

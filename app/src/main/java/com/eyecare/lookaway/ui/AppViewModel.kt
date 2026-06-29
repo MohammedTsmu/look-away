@@ -59,9 +59,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setWorkMinutes(v: Int) = edit { setWorkMinutes(v) }
     fun setBreakSeconds(v: Int) = edit { setBreakSeconds(v) }
     fun setSound(v: Boolean) = edit { setSound(v) }
+    fun setSoundUri(v: String) = edit { setSoundUri(v) }
     fun setVibrate(v: Boolean) = edit { setVibrate(v) }
     fun setFullScreen(v: Boolean) = edit { setFullScreen(v) }
-    fun setDim(v: Boolean) = edit { setDim(v) }
     fun setStrict(v: Boolean) = edit { setStrict(v) }
     fun setPauseWhenScreenOff(v: Boolean) = edit { setPauseWhenScreenOff(v) }
     fun setPauseMedia(v: Boolean) = edit { setPauseMedia(v) }

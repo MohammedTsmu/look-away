@@ -16,6 +16,10 @@ import com.eyecare.lookaway.service.RunState
  */
 class PauseTileService : TileService() {
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.eyecare.lookaway.util.LocaleManager.wrap(newBase))
+    }
+
     override fun onStartListening() {
         super.onStartListening()
         render()

@@ -53,17 +53,20 @@ class BreakActivity : ComponentActivity() {
 
     private var finishing = false
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.eyecare.lookaway.util.LocaleManager.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         showOverEverything()
         installBackHandler()
 
         val settings = ReminderEngine.settings
-        if (settings.dimScreen) dimScreen()
 
         // In full-screen mode this Activity owns the feedback so it lines up
         // with the visuals appearing.
-        Feedback.playBreakStart(this, settings.sound, settings.vibrate)
+        Feedback.playBreakStart(this, settings.sound, settings.vibrate, settings.soundUri)
 
         setContent {
             LookAwayTheme(settings.themeMode, settings.accentIndex) {
@@ -74,7 +77,7 @@ class BreakActivity : ComponentActivity() {
                 LaunchedEffect(state.phase) {
                     if (state.phase != Phase.BREAK && !finishing) {
                         finishing = true
-                        Feedback.playBreakEnd(this@BreakActivity, settings.sound, settings.vibrate)
+                        Feedback.playBreakEnd(this@BreakActivity, settings.sound, settings.vibrate, settings.soundUri)
                         finishAndRemoveTask()
                     }
                 }
@@ -102,10 +105,6 @@ class BreakActivity : ComponentActivity() {
             )
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-    }
-
-    private fun dimScreen() {
-        window.attributes = window.attributes.apply { screenBrightness = 0.25f }
     }
 
     private fun installBackHandler() {
