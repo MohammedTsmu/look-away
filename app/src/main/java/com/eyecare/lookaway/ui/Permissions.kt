@@ -20,6 +20,7 @@ data class PermissionStatus(
     val batteryUnrestricted: Boolean,
     val mediaAccess: Boolean,
     val fullScreenIntent: Boolean,
+    val usageAccess: Boolean,
 ) {
     val allEssentialGranted: Boolean get() = notifications && exactAlarm
     /** The break can take over the screen if it can either overlay or fire a full-screen intent. */
@@ -35,7 +36,11 @@ object Permissions {
         batteryUnrestricted = isBatteryUnrestricted(context),
         mediaAccess = hasMediaAccess(context),
         fullScreenIntent = hasFullScreenIntent(context),
+        usageAccess = com.eyecare.lookaway.usage.UsageTracker.hasAccess(context),
     )
+
+    fun usageAccessIntent(): Intent =
+        com.eyecare.lookaway.usage.UsageTracker.usageAccessIntent()
 
     fun hasFullScreenIntent(context: Context): Boolean =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {

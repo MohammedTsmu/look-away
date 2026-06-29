@@ -67,6 +67,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setPauseMedia(v: Boolean) = edit { setPauseMedia(v) }
     fun setRemindWhenOff(v: Boolean) = edit { setRemindWhenOff(v) }
     fun setRemindWhenOffHours(v: Int) = edit { setRemindWhenOffHours(v) }
+    fun setMindfulEnabled(v: Boolean) = edit { setMindfulEnabled(v) }
+    fun setMindfulThreshold(v: Int) = edit { setMindfulThreshold(v) }
+    fun setMindfulRepeat(v: Int) = edit { setMindfulRepeat(v) }
     fun setStartOnBoot(v: Boolean) = edit { setStartOnBoot(v) }
     fun setStartOnOpen(v: Boolean) = edit { setStartOnOpen(v) }
     fun setQuietEnabled(v: Boolean) = edit { setQuietEnabled(v) }

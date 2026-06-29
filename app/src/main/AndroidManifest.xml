@@ -27,6 +27,12 @@
     <!-- Let the user exempt us from battery optimization for reliability. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- Optional: read total screen time for the gentle "mindful usage" nudge.
+         A special-access permission the user grants in system settings. -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
     <application
         android:name=".LookAwayApp"
         android:allowBackup="true"

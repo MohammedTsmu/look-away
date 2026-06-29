@@ -15,6 +15,7 @@ object Notifications {
     const val ID_STATUS = 1001
     const val ID_BREAK = 1002
     const val ID_NUDGE = 1003
+    const val ID_USAGE = 1004
 
     fun ensureChannels(context: Context) {
         val nm = context.getSystemService<NotificationManager>() ?: return

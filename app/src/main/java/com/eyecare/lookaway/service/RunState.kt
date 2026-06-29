@@ -32,6 +32,29 @@ object RunState {
         prefs(context).edit().remove(KEY_RESUME_AT).apply()
     }
 
+    // ---- Mindful-usage nudge bookkeeping (resets each day) ----
+    private const val KEY_USAGE_DAY = "usage_day"
+    private const val KEY_USAGE_NEXT = "usage_next"
+
+    /** Next screen-time threshold (minutes) at which to nudge today. */
+    fun usageNudgeThreshold(context: Context, default: Int): Int {
+        val p = prefs(context)
+        return if (p.getInt(KEY_USAGE_DAY, -1) != dayKey()) default
+        else p.getInt(KEY_USAGE_NEXT, default)
+    }
+
+    fun setUsageNudgeThreshold(context: Context, minutes: Int) {
+        prefs(context).edit()
+            .putInt(KEY_USAGE_DAY, dayKey())
+            .putInt(KEY_USAGE_NEXT, minutes)
+            .apply()
+    }
+
+    private fun dayKey(): Int {
+        val c = java.util.Calendar.getInstance()
+        return c.get(java.util.Calendar.YEAR) * 1000 + c.get(java.util.Calendar.DAY_OF_YEAR)
+    }
+
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 }

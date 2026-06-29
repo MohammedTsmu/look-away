@@ -35,6 +35,9 @@ class SettingsRepository(private val context: Context) {
         val quietEnd = intPreferencesKey("quiet_end")
         val remindOff = booleanPreferencesKey("remind_off")
         val remindOffHours = intPreferencesKey("remind_off_hours")
+        val mindfulEnabled = booleanPreferencesKey("mindful_enabled")
+        val mindfulThreshold = intPreferencesKey("mindful_threshold")
+        val mindfulRepeat = intPreferencesKey("mindful_repeat")
         val theme = intPreferencesKey("theme_mode")
         val accent = intPreferencesKey("accent_index")
     }
@@ -60,6 +63,9 @@ class SettingsRepository(private val context: Context) {
             quietEndMinutes = this[Keys.quietEnd] ?: d.quietEndMinutes,
             remindWhenOff = this[Keys.remindOff] ?: d.remindWhenOff,
             remindWhenOffHours = this[Keys.remindOffHours] ?: d.remindWhenOffHours,
+            mindfulUsageEnabled = this[Keys.mindfulEnabled] ?: d.mindfulUsageEnabled,
+            mindfulUsageThresholdMin = this[Keys.mindfulThreshold] ?: d.mindfulUsageThresholdMin,
+            mindfulUsageRepeatMin = this[Keys.mindfulRepeat] ?: d.mindfulUsageRepeatMin,
             themeMode = ThemeMode.entries.getOrElse(this[Keys.theme] ?: 0) { ThemeMode.SYSTEM },
             accentIndex = this[Keys.accent] ?: d.accentIndex,
         )
@@ -81,6 +87,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setQuietEnd(v: Int) = edit { it[Keys.quietEnd] = v.coerceIn(0, 1439) }
     suspend fun setRemindWhenOff(v: Boolean) = edit { it[Keys.remindOff] = v }
     suspend fun setRemindWhenOffHours(v: Int) = edit { it[Keys.remindOffHours] = v.coerceIn(1, 168) }
+    suspend fun setMindfulEnabled(v: Boolean) = edit { it[Keys.mindfulEnabled] = v }
+    suspend fun setMindfulThreshold(v: Int) = edit { it[Keys.mindfulThreshold] = v.coerceIn(15, 600) }
+    suspend fun setMindfulRepeat(v: Int) = edit { it[Keys.mindfulRepeat] = v.coerceIn(10, 240) }
     suspend fun setTheme(v: ThemeMode) = edit { it[Keys.theme] = v.ordinal }
     suspend fun setAccent(v: Int) = edit { it[Keys.accent] = v }
 

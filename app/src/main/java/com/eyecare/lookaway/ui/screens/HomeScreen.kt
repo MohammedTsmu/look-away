@@ -119,14 +119,16 @@ fun HomeScreen(
         ) {
             val needMedia = settings.pauseMediaOnBreak && !permissions.mediaAccess
             val needFullScreen = settings.fullScreenBreak && !permissions.fullScreenIntent
+            val needUsage = settings.mindfulUsageEnabled && !permissions.usageAccess
             if (!permissions.allEssentialGranted || !permissions.overlay ||
-                !permissions.batteryUnrestricted || needMedia || needFullScreen
+                !permissions.batteryUnrestricted || needMedia || needFullScreen || needUsage
             ) {
                 Spacer(Modifier.height(8.dp))
                 PermissionCard(
                     permissions = permissions,
                     showMedia = needMedia,
                     showFullScreen = needFullScreen,
+                    showUsage = needUsage,
                     onRequestNotifications = onRequestNotifications,
                     onOpenIntent = onOpenIntent,
                 )
@@ -311,6 +313,7 @@ private fun PermissionCard(
     permissions: PermissionStatus,
     showMedia: Boolean,
     showFullScreen: Boolean,
+    showUsage: Boolean,
     onRequestNotifications: () -> Unit,
     onOpenIntent: (android.content.Intent) -> Unit,
 ) {
@@ -379,6 +382,13 @@ private fun PermissionCard(
                     onGrant = {
                         onOpenIntent(com.eyecare.lookaway.ui.Permissions.notificationListenerSettingsIntent())
                     },
+                )
+            }
+            if (showUsage) {
+                PermissionRow(
+                    label = stringResource(R.string.perm_usage),
+                    desc = stringResource(R.string.perm_usage_desc),
+                    onGrant = { onOpenIntent(com.eyecare.lookaway.ui.Permissions.usageAccessIntent()) },
                 )
             }
         }

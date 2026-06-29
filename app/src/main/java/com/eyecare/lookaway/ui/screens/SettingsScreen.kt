@@ -244,6 +244,39 @@ fun SettingsScreen(
                 }
             }
 
+            // ---- Mindful usage ----
+            Section(stringResource(R.string.settings_mindful)) {
+                SwitchRow(
+                    title = stringResource(R.string.settings_mindful_enable),
+                    subtitle = stringResource(R.string.settings_mindful_desc),
+                    checked = s.mindfulUsageEnabled,
+                    onChange = { on ->
+                        viewModel.setMindfulEnabled(on)
+                        if (on && !com.eyecare.lookaway.usage.UsageTracker.hasAccess(context)) {
+                            onOpenIntent(com.eyecare.lookaway.ui.Permissions.usageAccessIntent())
+                        }
+                    },
+                )
+                if (s.mindfulUsageEnabled) {
+                    SliderRow(
+                        label = stringResource(R.string.settings_mindful_after),
+                        valueText = durationLabel(s.mindfulUsageThresholdMin),
+                        value = s.mindfulUsageThresholdMin.toFloat(),
+                        range = 30f..480f,
+                        steps = 29,
+                        onChange = { viewModel.setMindfulThreshold((Math.round(it / 15f) * 15)) },
+                    )
+                    SliderRow(
+                        label = stringResource(R.string.settings_mindful_repeat),
+                        valueText = durationLabel(s.mindfulUsageRepeatMin),
+                        value = s.mindfulUsageRepeatMin.toFloat(),
+                        range = 10f..120f,
+                        steps = 10,
+                        onChange = { viewModel.setMindfulRepeat((Math.round(it / 10f) * 10)) },
+                    )
+                }
+            }
+
             // ---- Appearance ----
             Section(stringResource(R.string.settings_appearance)) {
                 Text(
@@ -452,6 +485,16 @@ private fun AccentDot(color: Color, selected: Boolean, onClick: () -> Unit) {
 }
 
 private fun roundTo5(v: Float): Int = (Math.round(v / 5f) * 5).coerceAtLeast(5)
+
+private fun durationLabel(minutes: Int): String {
+    val h = minutes / 60
+    val m = minutes % 60
+    return when {
+        h > 0 && m > 0 -> "${h}h ${m}m"
+        h > 0 -> "${h}h"
+        else -> "${m}m"
+    }
+}
 
 private fun formatMinutes(minutes: Int): String {
     val h = minutes / 60

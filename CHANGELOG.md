@@ -8,10 +8,10 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.17.8` = generation 1, **17 features**,
+So the version literally encodes the scope: `1.18.8` = generation 1, **18 features**,
 **8 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
-## Feature inventory (17)
+## Feature inventory (18)
 
 | # | Feature |
 |---|---------|
@@ -32,6 +32,7 @@ So the version literally encodes the scope: `1.17.8` = generation 1, **17 featur
 | 15 | Home-screen widget (Start / Pause / Resume / Stop) |
 | 16 | Arabic localization + in-app language switch (System / English / العربية) with RTL |
 | 17 | Selectable break sound (pick any notification tone) |
+| 18 | Mindful-usage reminder — gentle, dismissible nudge to step away after a configurable amount of daily screen time (Usage Access; off by default) |
 
 ## Enhancement passes (3)
 
@@ -47,6 +48,14 @@ So the version literally encodes the scope: `1.17.8` = generation 1, **17 featur
 | 8 | Layout direction (RTL/LTR) flips instantly on language change, driven from the active locale |
 
 ---
+
+## 1.18.8
+
+- **New — Mindful usage reminder (gentle):** an optional, **off-by-default**
+  reminder that watches today's total screen time (via Usage Access) and shows a
+  soft, dismissible notification — "You've been on screen Xh today, maybe step
+  away" — after a threshold you set, then repeats every N minutes of further use.
+  No blocking, no nagging. Settings → Mindful usage.
 
 ## 1.17.8
 

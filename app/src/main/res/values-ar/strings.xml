@@ -23,6 +23,10 @@
     <string name="nudge_off_title">العناية بالعين متوقفة</string>
     <string name="nudge_off_text">‏Look Away متوقف منذ فترة. اضغط لحماية عينيك مجددًا.</string>
     <string name="action_turn_on">تشغيل</string>
+    <string name="usage_nudge_title">حان وقت رفع نظرك</string>
+    <string name="usage_nudge_text">قضيت %1$s أمام الشاشة اليوم. ربما حان وقت الابتعاد قليلًا والاستمتاع بالحياة الحقيقية.</string>
+    <string name="dur_h_m">%1$d س %2$d د</string>
+    <string name="dur_m">%1$d د</string>
 
     <!-- Quick Settings tile -->
     <string name="tile_label">Look Away</string>
@@ -96,6 +100,12 @@
     <string name="settings_remind_off_desc">إذا أوقفت التذكيرات، ننبّهك لاحقًا حتى لا تنسى</string>
     <string name="settings_remind_off_delay">التذكير بعد</string>
 
+    <string name="settings_mindful">الاستخدام الواعي</string>
+    <string name="settings_mindful_enable">ذكّرني بالابتعاد</string>
+    <string name="settings_mindful_desc">تذكير لطيف برفع نظرك بعد وقت طويل أمام الشاشة اليوم. يتطلب الوصول إلى بيانات الاستخدام.</string>
+    <string name="settings_mindful_after">بعد</string>
+    <string name="settings_mindful_repeat">ثم كل</string>
+
     <!-- Turn-off bottom sheet -->
     <string name="sheet_title">إيقاف أم تأجيل؟</string>
     <string name="sheet_sub">التأجيل يعيد التشغيل تلقائيًا.</string>
@@ -134,5 +144,7 @@
     <string name="perm_media_desc">امنح الوصول إلى الإشعارات لتتمكن الاستراحات من إيقاف الفيديو والموسيقى</string>
     <string name="perm_fullscreen">إظهار الاستراحة بملء الشاشة</string>
     <string name="perm_fullscreen_desc">اسمح للاستراحة بالسيطرة على الشاشة — وإلا ستظهر كإشعار فقط</string>
+    <string name="perm_usage">الوصول إلى بيانات الاستخدام</string>
+    <string name="perm_usage_desc">قراءة وقت الشاشة اليوم من أجل تذكير الاستخدام الواعي</string>
     <string name="perm_grant">منح</string>
 </resources>

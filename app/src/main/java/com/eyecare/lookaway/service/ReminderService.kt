@@ -21,6 +21,7 @@ import com.eyecare.lookaway.R
 import com.eyecare.lookaway.data.SettingsRepository
 import com.eyecare.lookaway.media.MediaPauser
 import com.eyecare.lookaway.overlay.BreakOverlay
+import com.eyecare.lookaway.usage.UsageTracker
 import com.eyecare.lookaway.ui.BreakActivity
 import com.eyecare.lookaway.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
@@ -41,6 +42,7 @@ class ReminderService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var repo: SettingsRepository
     private var started = false
+    private var tickCounter = 0
     private val screenReceiver = ScreenReceiver()
 
     override fun attachBaseContext(newBase: android.content.Context) {
@@ -135,6 +137,11 @@ class ReminderService : Service() {
                 val st = ReminderEngine.state.value
                 BreakOverlay.update(st.secondsRemaining, 1f - st.progress.coerceIn(0f, 1f))
             }
+            // Check screen-time roughly once a minute (ticks fire while in use).
+            if (++tickCounter >= 60) {
+                tickCounter = 0
+                checkMindfulUsage()
+            }
         }
     }
 
@@ -220,6 +227,43 @@ class ReminderService : Service() {
         } else {
             startForeground(Notifications.ID_STATUS, notification)
         }
+    }
+
+    private fun checkMindfulUsage() {
+        val s = ReminderEngine.settings
+        if (!s.mindfulUsageEnabled || !UsageTracker.hasAccess(this)) return
+        val minutes = UsageTracker.todayForegroundMinutes(this)
+        val threshold = RunState.usageNudgeThreshold(this, s.mindfulUsageThresholdMin)
+        if (minutes >= threshold) {
+            postUsageNudge(minutes)
+            RunState.setUsageNudgeThreshold(this, minutes + s.mindfulUsageRepeatMin)
+        }
+    }
+
+    @SuppressLint("MissingPermission") // guarded by canPostNotifications()
+    private fun postUsageNudge(minutes: Int) {
+        if (!canPostNotifications()) return
+        val openApp = PendingIntent.getActivity(
+            this, 30,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val text = getString(R.string.usage_nudge_text, formatDuration(minutes))
+        val notification = NotificationCompat.Builder(this, Notifications.CHANNEL_NUDGE)
+            .setSmallIcon(R.drawable.ic_eye)
+            .setContentTitle(getString(R.string.usage_nudge_title))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setContentIntent(openApp)
+            .setAutoCancel(true)
+            .build()
+        NotificationManagerCompat.from(this).notify(Notifications.ID_USAGE, notification)
+    }
+
+    private fun formatDuration(minutes: Int): String {
+        val h = minutes / 60
+        val m = minutes % 60
+        return if (h > 0) getString(R.string.dur_h_m, h, m) else getString(R.string.dur_m, m)
     }
 
     private fun formatTimeOfDay(epochMillis: Long): String =

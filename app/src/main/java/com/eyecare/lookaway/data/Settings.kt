@@ -25,6 +25,11 @@ data class Settings(
     val quietEndMinutes: Int = 7 * 60,
     val remindWhenOff: Boolean = true,
     val remindWhenOffHours: Int = 24,
+    // Gentle "you've used your phone a lot today — step away" reminder (off by
+    // default; needs Usage Access).
+    val mindfulUsageEnabled: Boolean = false,
+    val mindfulUsageThresholdMin: Int = 120,
+    val mindfulUsageRepeatMin: Int = 30,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val accentIndex: Int = 0,
 ) {

@@ -23,6 +23,10 @@
     <string name="nudge_off_title">Eye-care is off</string>
     <string name="nudge_off_text">Look Away has been off for a while. Tap to protect your eyes again.</string>
     <string name="action_turn_on">Turn on</string>
+    <string name="usage_nudge_title">Time to look up</string>
+    <string name="usage_nudge_text">You\'ve been on screen %1$s today. Maybe step away and enjoy real life for a bit.</string>
+    <string name="dur_h_m">%1$dh %2$dm</string>
+    <string name="dur_m">%1$dm</string>
 
     <!-- Quick Settings tile -->
     <string name="tile_label">Look Away</string>
@@ -96,6 +100,12 @@
     <string name="settings_remind_off_desc">If you turn reminders off, nudge you later so you don\'t forget</string>
     <string name="settings_remind_off_delay">Remind after</string>
 
+    <string name="settings_mindful">Mindful usage</string>
+    <string name="settings_mindful_enable">Nudge me to step away</string>
+    <string name="settings_mindful_desc">A gentle reminder to look up after a lot of screen time today. Needs Usage Access.</string>
+    <string name="settings_mindful_after">After</string>
+    <string name="settings_mindful_repeat">Then every</string>
+
     <!-- Turn-off bottom sheet -->
     <string name="sheet_title">Turn off or pause?</string>
     <string name="sheet_sub">Pausing turns itself back on automatically.</string>
@@ -134,5 +144,7 @@
     <string name="perm_media_desc">Grant notification access so breaks can pause video &amp; music</string>
     <string name="perm_fullscreen">Show break full-screen</string>
     <string name="perm_fullscreen_desc">Allow the break to take over the screen — otherwise it only appears as a notification</string>
+    <string name="perm_usage">Usage access</string>
+    <string name="perm_usage_desc">Read today\'s screen time for the mindful-usage reminder</string>
     <string name="perm_grant">Grant</string>
 </resources>
