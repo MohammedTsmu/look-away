@@ -8,8 +8,8 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.17.6` = generation 1, **17 features**,
-**6 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
+So the version literally encodes the scope: `1.17.7` = generation 1, **17 features**,
+**7 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
 ## Feature inventory (17)
 
@@ -43,6 +43,22 @@ So the version literally encodes the scope: `1.17.6` = generation 1, **17 featur
 | 4 | Screen-off awareness — only count screen-on time; no breaks while locked/asleep; ongoing status hidden from the lock screen |
 | 5 | Full-screen break reliability (request USE_FULL_SCREEN_INTENT) + removed the forced screen-brightness change during breaks |
 | 6 | Live settings (interval changes restart the countdown immediately) + overlay-window break that shows full-screen even on OEMs that block background activity starts (MIUI) |
+| 7 | Break is never invisible — always post the break notification as a fallback even when the overlay path is taken/fails; service owns sound/vibration (no double feedback) |
+
+---
+
+## 1.17.7
+
+- **Fix — break was invisible on some MIUI devices in 1.17.6:** when "Display over
+  other apps" was granted, the app took the overlay path but the overlay
+  `addView` could fail silently on MIUI, and that branch no longer posted a
+  notification — so nothing showed (even though media still paused). Now the
+  break notification is **always** posted as a guaranteed-visible fallback, the
+  overlay reports success/failure and the code falls back cleanly, and the skip
+  button is a plain styled view (no theme dependency) so the overlay builds
+  reliably.
+- Sound/vibration are now played by the service (single source) instead of the
+  break Activity, avoiding any double chime.
 
 ---
 

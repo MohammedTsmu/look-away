@@ -9,7 +9,6 @@ import android.os.Build
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -31,14 +30,22 @@ object BreakOverlay {
 
     fun isShowing(): Boolean = root != null
 
-    // FLAG_SHOW_WHEN_LOCKED/TURN_SCREEN_ON are deprecated for Activities but are
-    // the only way to set them on a non-Activity overlay window.
+    /**
+     * Adds the overlay window. Returns true only if it was actually added, so
+     * the caller can fall back to a notification when the OEM blocks overlays.
+     * FLAG_SHOW_WHEN_LOCKED/TURN_SCREEN_ON are deprecated for Activities but are
+     * the only way to set them on a non-Activity overlay window.
+     */
     @SuppressLint("InflateParams")
     @Suppress("DEPRECATION")
-    fun show(context: Context, showSkip: Boolean) {
-        if (root != null) return
-        val wm = context.getSystemService<WindowManager>() ?: return
-        val l = LocaleManager.wrap(context)
+    fun show(context: Context, showSkip: Boolean): Boolean {
+        if (root != null) return true
+        val wm = context.getSystemService<WindowManager>() ?: return false
+        // A themed context so plain widgets resolve their styles reliably.
+        val l = android.view.ContextThemeWrapper(
+            LocaleManager.wrap(context),
+            R.style.Theme_LookAway,
+        )
         val dp = context.resources.displayMetrics.density
         fun px(v: Int) = (v * dp).toInt()
 
@@ -80,14 +87,18 @@ object BreakOverlay {
         column.addView(ringView)
 
         if (showSkip) {
-            val skip = Button(l).apply {
+            // A TextView styled as a button — no theme/AppCompat dependency.
+            val skip = TextView(l).apply {
                 text = l.getString(R.string.action_skip)
                 setTextColor(Color.WHITE)
+                textSize = 15f
+                gravity = Gravity.CENTER
                 background = GradientDrawable().apply {
                     cornerRadius = px(28).toFloat()
                     setColor(Color.argb(40, 255, 255, 255))
                 }
-                setPadding(px(28), px(10), px(28), px(10))
+                setPadding(px(32), px(12), px(32), px(12))
+                isClickable = true
                 setOnClickListener { ReminderEngine.endBreak() }
             }
             column.addView(
@@ -124,10 +135,15 @@ object BreakOverlay {
             PixelFormat.TRANSLUCENT,
         ).apply { gravity = Gravity.CENTER }
 
-        runCatching {
+        return runCatching {
             wm.addView(container, params)
             root = container
-        }.onFailure { root = null; ring = null }
+            true
+        }.getOrElse {
+            root = null
+            ring = null
+            false
+        }
     }
 
     fun update(seconds: Int, progress: Float) {

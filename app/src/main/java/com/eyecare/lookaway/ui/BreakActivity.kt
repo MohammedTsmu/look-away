@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.eyecare.lookaway.R
-import com.eyecare.lookaway.service.Feedback
 import com.eyecare.lookaway.service.Phase
 import com.eyecare.lookaway.service.ReminderEngine
 import com.eyecare.lookaway.ui.theme.LookAwayTheme
@@ -63,10 +62,8 @@ class BreakActivity : ComponentActivity() {
         installBackHandler()
 
         val settings = ReminderEngine.settings
-
-        // In full-screen mode this Activity owns the feedback so it lines up
-        // with the visuals appearing.
-        Feedback.playBreakStart(this, settings.sound, settings.vibrate, settings.soundUri)
+        // Sound/vibration are played by the service (which owns the break),
+        // so this Activity just renders the visuals.
 
         setContent {
             LookAwayTheme(settings.themeMode, settings.accentIndex) {
@@ -77,7 +74,6 @@ class BreakActivity : ComponentActivity() {
                 LaunchedEffect(state.phase) {
                     if (state.phase != Phase.BREAK && !finishing) {
                         finishing = true
-                        Feedback.playBreakEnd(this@BreakActivity, settings.sound, settings.vibrate, settings.soundUri)
                         finishAndRemoveTask()
                     }
                 }

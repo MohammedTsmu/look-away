@@ -160,28 +160,33 @@ class ReminderService : Service() {
     private fun onBreakStarted() {
         val s = ReminderEngine.settings
         if (s.pauseMediaOnBreak) MediaPauser.pauseActive(this)
+
         if (!s.fullScreenBreak) {
             postBreakNotification(fullScreen = false)
             Feedback.playBreakStart(this, s.sound, s.vibrate, s.soundUri)
             return
         }
-        // Prefer our own overlay window — it shows reliably even on OEMs that
-        // block background activity starts (MIUI etc.). Fall back to the
-        // full-screen-intent notification + Activity when overlay isn't granted.
-        if (AndroidSettings.canDrawOverlays(this)) {
+
+        // Try our overlay window first — it shows even on OEMs that block
+        // background activity starts (MIUI), as long as overlay access is granted.
+        val overlayShown = AndroidSettings.canDrawOverlays(this) &&
             BreakOverlay.show(this, showSkip = !s.strictMode)
-            BreakOverlay.update(s.breakSeconds, 1f)
-            Feedback.playBreakStart(this, s.sound, s.vibrate, s.soundUri)
-        } else {
-            postBreakNotification(fullScreen = true)
-            launchBreakActivityIfPossible()
-            // BreakActivity owns sound/vibration so it can sync with its UI.
-        }
+        if (overlayShown) BreakOverlay.update(s.breakSeconds, 1f)
+
+        // ALWAYS post a notification so a break is never invisible. Use a
+        // full-screen intent only when the overlay isn't up (avoids a double
+        // break on normal devices); otherwise a heads-up + tap-to-open fallback.
+        postBreakNotification(fullScreen = !overlayShown)
+        if (!overlayShown) launchBreakActivityIfPossible()
+
+        Feedback.playBreakStart(this, s.sound, s.vibrate, s.soundUri)
     }
 
     private fun onBreakEnded() {
+        val s = ReminderEngine.settings
         BreakOverlay.hide(this)
         NotificationManagerCompat.from(this).cancel(Notifications.ID_BREAK)
+        Feedback.playBreakEnd(this, s.sound, s.vibrate, s.soundUri)
         // Resume whatever we paused (no-op if nothing was paused).
         MediaPauser.resume(this)
     }
