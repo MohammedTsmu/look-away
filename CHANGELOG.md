@@ -8,8 +8,8 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.21.11` = generation 1, **21 features**,
-**11 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
+So the version literally encodes the scope: `1.21.12` = generation 1, **21 features**,
+**12 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
 ## Feature inventory (21)
 
@@ -52,6 +52,18 @@ So the version literally encodes the scope: `1.21.11` = generation 1, **21 featu
 | 9 | Overlay break stability — non-focusable overlay window + quiet companion notification so it no longer flickers/drops behind; app icons in the picker and limit lists |
 | 10 | App picker lists all installed apps (declared launcher `<queries>` for Android 11+ package visibility) |
 | 11 | App limits get a full-screen reminder (Snooze 5 min / Dismiss) shown only while you're in the over-limit app; usage monitoring now runs in its own service loop so limits work even when the 20-20-20 reminder is off |
+| 12 | App-limit Snooze vs Dismiss now behave distinctly — Snooze gives true timed quiet; Dismiss is per-visit so reopening the app re-shows the reminder (no sneaking back) |
+
+---
+
+## 1.21.12
+
+- **Smarter Snooze vs Dismiss on app-limit reminders:**
+  - **Snooze 5 min** = real quiet for 5 minutes that survives switching apps.
+  - **Dismiss** = quiet for *this visit only*. Before, dismissing let you close and
+    reopen the app freely for 15 minutes; now **reopening the app brings the
+    reminder back**, so you can't sneak past the limit by leaving and returning.
+    (Staying in the app after Dismiss keeps it quiet until you leave.)
 
 ---
 

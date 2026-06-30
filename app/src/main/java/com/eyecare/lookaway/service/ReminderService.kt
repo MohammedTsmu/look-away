@@ -47,6 +47,11 @@ class ReminderService : Service() {
     private var monitorJob: kotlinx.coroutines.Job? = null
     private val screenReceiver = ScreenReceiver()
 
+    // Apps the user dismissed this "session"; cleared when they switch apps so
+    // reopening an over-limit app brings the reminder back.
+    private val dismissedApps = mutableSetOf<String>()
+    private var lastForegroundApp: String? = null
+
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(com.eyecare.lookaway.util.LocaleManager.wrap(newBase))
     }
@@ -305,6 +310,11 @@ class ReminderService : Service() {
             return
         }
         val fg = UsageTracker.currentForegroundApp(this)
+        // Switching apps ends a "dismiss session" — reopening re-shows the reminder.
+        if (fg != null && fg != lastForegroundApp) {
+            dismissedApps.clear()
+            lastForegroundApp = fg
+        }
         // Drop the overlay as soon as the user leaves the over-limit app.
         if (LimitOverlay.isShowing() && LimitOverlay.showingPackage() != fg) {
             LimitOverlay.hide(this)
@@ -316,7 +326,8 @@ class ReminderService : Service() {
         val overlayOk = AndroidSettings.canDrawOverlays(this)
         for ((pkg, limit) in s.appLimits) {
             if ((perApp[pkg] ?: 0) < limit) continue
-            if (now < RunState.limitMutedUntil(this, pkg)) continue
+            if (pkg in dismissedApps) continue                 // dismissed this visit
+            if (now < RunState.limitMutedUntil(this, pkg)) continue // snoozed
             val used = perApp[pkg] ?: 0
             if (overlayOk && fg == pkg) {
                 showLimitOverlay(pkg, used, limit)
@@ -339,12 +350,14 @@ class ReminderService : Service() {
             packageName = pkg,
             appLabel = label,
             usedText = usedText,
+            // Snooze: real quiet that survives switching apps.
             onSnooze = {
                 RunState.setLimitMute(this, pkg, System.currentTimeMillis() + 5 * 60_000L)
                 LimitOverlay.hide(this)
             },
+            // Dismiss: quiet only for this visit; reopening the app re-shows it.
             onDismiss = {
-                RunState.setLimitMute(this, pkg, System.currentTimeMillis() + 15 * 60_000L)
+                dismissedApps.add(pkg)
                 LimitOverlay.hide(this)
             },
         )
