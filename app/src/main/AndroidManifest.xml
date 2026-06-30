@@ -33,6 +33,16 @@
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
 
+    <!-- See all launchable apps (Android 11+ package visibility) so the per-app
+         limit picker can list every app, not just the default-visible few.
+         Uses an intent filter, not QUERY_ALL_PACKAGES, to stay Play-policy-safe. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
     <application
         android:name=".LookAwayApp"
         android:allowBackup="true"

@@ -8,8 +8,8 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.21.9` = generation 1, **21 features**,
-**9 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
+So the version literally encodes the scope: `1.21.10` = generation 1, **21 features**,
+**10 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
 ## Feature inventory (21)
 
@@ -50,6 +50,16 @@ So the version literally encodes the scope: `1.21.9` = generation 1, **21 featur
 | 7 | Break is never invisible — always post the break notification as a fallback even when the overlay path is taken/fails; service owns sound/vibration (no double feedback) |
 | 8 | Layout direction (RTL/LTR) flips instantly on language change, driven from the active locale |
 | 9 | Overlay break stability — non-focusable overlay window + quiet companion notification so it no longer flickers/drops behind; app icons in the picker and limit lists |
+| 10 | App picker lists all installed apps (declared launcher `<queries>` for Android 11+ package visibility) |
+
+---
+
+## 1.21.10
+
+- **Fix — the per-app-limit picker only showed a few apps:** Android 11+ hides
+  most installed apps from other apps by default (package visibility). Added a
+  launcher `<queries>` declaration so the picker now lists **all** your launchable
+  apps — without the Play-policy-sensitive `QUERY_ALL_PACKAGES` permission.
 
 ---
 
