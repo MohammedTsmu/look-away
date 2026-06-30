@@ -8,8 +8,8 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.21.10` = generation 1, **21 features**,
-**10 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
+So the version literally encodes the scope: `1.21.11` = generation 1, **21 features**,
+**11 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
 ## Feature inventory (21)
 
@@ -51,6 +51,24 @@ So the version literally encodes the scope: `1.21.10` = generation 1, **21 featu
 | 8 | Layout direction (RTL/LTR) flips instantly on language change, driven from the active locale |
 | 9 | Overlay break stability — non-focusable overlay window + quiet companion notification so it no longer flickers/drops behind; app icons in the picker and limit lists |
 | 10 | App picker lists all installed apps (declared launcher `<queries>` for Android 11+ package visibility) |
+| 11 | App limits get a full-screen reminder (Snooze 5 min / Dismiss) shown only while you're in the over-limit app; usage monitoring now runs in its own service loop so limits work even when the 20-20-20 reminder is off |
+
+---
+
+## 1.21.11
+
+- **Stronger app-limit handling (still no blocking):** when you're **using** an
+  app that's over its daily limit, Look Away now shows a calming **full-screen
+  reminder** with the app name, how long you've used it, and **Snooze 5 min** /
+  **Dismiss**. It only appears while you're actually in that app, auto-disappears
+  when you leave it, and won't reappear for a few minutes after you act. (Needs
+  "Display over other apps"; falls back to a notification otherwise.)
+- **Limits run even when eye-care is off:** usage/app-limit monitoring moved to
+  its own background loop, so it keeps working even if you Stop the 20-20-20
+  reminder. The ongoing notification then reads "Watching your screen time".
+  Enabling Mindful usage or adding an app limit starts it automatically (and it
+  resumes on boot); turning everything off releases it.
+- A Focus session still mutes all of this.
 
 ---
 

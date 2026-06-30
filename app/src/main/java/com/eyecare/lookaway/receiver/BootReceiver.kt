@@ -25,8 +25,11 @@ class BootReceiver : BroadcastReceiver() {
                 CoroutineScope(Dispatchers.Default).launch {
                     try {
                         val settings = SettingsRepository(appContext).flow.first()
-                        if (settings.startOnBoot) {
-                            ReminderScheduler.startReminders(appContext)
+                        val monitor = (settings.mindfulUsageEnabled || settings.appLimits.isNotEmpty()) &&
+                            com.eyecare.lookaway.usage.UsageTracker.hasAccess(appContext)
+                        when {
+                            settings.startOnBoot -> ReminderScheduler.startReminders(appContext)
+                            monitor -> ReminderScheduler.startMonitor(appContext)
                         }
                     } finally {
                         pending.finish()

@@ -67,10 +67,16 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setPauseMedia(v: Boolean) = edit { setPauseMedia(v) }
     fun setRemindWhenOff(v: Boolean) = edit { setRemindWhenOff(v) }
     fun setRemindWhenOffHours(v: Int) = edit { setRemindWhenOffHours(v) }
-    fun setMindfulEnabled(v: Boolean) = edit { setMindfulEnabled(v) }
+    fun setMindfulEnabled(v: Boolean) = viewModelScope.launch {
+        repo.setMindfulEnabled(v)
+        if (v) ReminderScheduler.startMonitor(context())
+    }
     fun setMindfulThreshold(v: Int) = edit { setMindfulThreshold(v) }
     fun setMindfulRepeat(v: Int) = edit { setMindfulRepeat(v) }
-    fun setAppLimit(pkg: String, minutes: Int) = edit { setAppLimit(pkg, minutes) }
+    fun setAppLimit(pkg: String, minutes: Int) = viewModelScope.launch {
+        repo.setAppLimit(pkg, minutes)
+        ReminderScheduler.startMonitor(context())
+    }
     fun removeAppLimit(pkg: String) = edit { removeAppLimit(pkg) }
 
     // ---- Usage helpers ----

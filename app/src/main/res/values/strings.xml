@@ -15,6 +15,7 @@
     <string name="notif_break_title">Time to look away</string>
     <string name="notif_break_text">Rest your eyes for %1$d seconds</string>
     <string name="notif_paused_until">Paused — resumes at %1$s</string>
+    <string name="notif_monitoring">Watching your screen time</string>
 
     <!-- Media + nudge -->
     <string name="media_listener_label">Look Away — pause media during breaks</string>
@@ -27,6 +28,9 @@
     <string name="usage_nudge_text">You\'ve been on screen %1$s today. Maybe step away and enjoy real life for a bit.</string>
     <string name="app_limit_nudge_title">App limit reached</string>
     <string name="app_limit_nudge_text">You\'ve spent %2$s on %1$s today. Time for a real break?</string>
+    <string name="limit_used_text">%1$s used today · limit %2$s</string>
+    <string name="limit_snooze">Snooze 5 min</string>
+    <string name="limit_dismiss">Dismiss</string>
     <string name="dur_h_m">%1$dh %2$dm</string>
     <string name="dur_m">%1$dm</string>
 

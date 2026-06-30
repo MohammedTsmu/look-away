@@ -85,6 +85,23 @@ object RunState {
         prefs(context).edit().remove(KEY_FOCUS_UNTIL).apply()
     }
 
+    // Per-app limit reminder cooldown: don't remind again for this app until epoch.
+    private const val KEY_LIMIT_MUTE = "limit_mute"
+
+    fun limitMutedUntil(context: Context, pkg: String): Long {
+        val set = prefs(context).getStringSet(KEY_LIMIT_MUTE, emptySet()) ?: emptySet()
+        val entry = set.firstOrNull { it.substringBeforeLast('=') == pkg } ?: return 0L
+        return entry.substringAfterLast('=').toLongOrNull() ?: 0L
+    }
+
+    fun setLimitMute(context: Context, pkg: String, untilEpoch: Long) {
+        val p = prefs(context)
+        val set = p.getStringSet(KEY_LIMIT_MUTE, emptySet()) ?: emptySet()
+        val without = set.filterNot { it.substringBeforeLast('=') == pkg }.toMutableSet()
+        without.add("$pkg=$untilEpoch")
+        p.edit().putStringSet(KEY_LIMIT_MUTE, without).apply()
+    }
+
     private fun dayKey(): Int {
         val c = java.util.Calendar.getInstance()
         return c.get(java.util.Calendar.YEAR) * 1000 + c.get(java.util.Calendar.DAY_OF_YEAR)

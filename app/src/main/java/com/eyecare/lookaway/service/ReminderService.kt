@@ -21,6 +21,7 @@ import com.eyecare.lookaway.R
 import com.eyecare.lookaway.data.SettingsRepository
 import com.eyecare.lookaway.media.MediaPauser
 import com.eyecare.lookaway.overlay.BreakOverlay
+import com.eyecare.lookaway.overlay.LimitOverlay
 import com.eyecare.lookaway.usage.UsageTracker
 import com.eyecare.lookaway.ui.BreakActivity
 import com.eyecare.lookaway.ui.MainActivity
@@ -42,7 +43,8 @@ class ReminderService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var repo: SettingsRepository
     private var started = false
-    private var tickCounter = 0
+    private var settingsLoaded = false
+    private var monitorJob: kotlinx.coroutines.Job? = null
     private val screenReceiver = ScreenReceiver()
 
     override fun attachBaseContext(newBase: android.content.Context) {
@@ -56,6 +58,17 @@ class ReminderService : Service() {
         observeSettings()
         observeState()
         registerScreenReceiver()
+        ensureMonitorLoop()
+    }
+
+    private fun ensureMonitorLoop() {
+        if (monitorJob?.isActive == true) return
+        monitorJob = scope.launch {
+            while (true) {
+                runCatching { runMonitorTick() }
+                kotlinx.coroutines.delay(if (LimitOverlay.isShowing()) 4_000L else 20_000L)
+            }
+        }
     }
 
     private fun registerScreenReceiver() {
@@ -76,21 +89,41 @@ class ReminderService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Promote to foreground immediately to satisfy the 5s startForeground rule.
         startForegroundStatus()
+        ensureSettingsLoaded()
+        ensureMonitorLoop()
 
         when (intent?.action) {
-            ACTION_STOP -> {
-                stopEverything()
-                return START_NOT_STICKY
-            }
+            ACTION_STOP -> stopEngine()
             ACTION_PAUSE -> ReminderEngine.setPaused(true)
             ACTION_RESUME -> { ReminderEngine.setPaused(false); onManualResume() }
             ACTION_TOGGLE -> { ReminderEngine.togglePause(); if (!ReminderEngine.state.value.paused) onManualResume() }
             ACTION_SKIP -> ReminderEngine.endBreak()
             ACTION_BREAK_NOW -> ReminderEngine.breakNow()
-            ACTION_START, null -> ensureRunning()
+            ACTION_START_MONITOR -> { /* keep service alive for usage monitoring only */ }
+            ACTION_START, null -> if (RunState.isEnabled(this) || intent?.action == ACTION_START) ensureRunning()
+        }
+
+        // Stop the whole service only if nothing wants it anymore.
+        if (!RunState.isEnabled(this) && !monitoringWanted()) {
+            fullStop()
+            return START_NOT_STICKY
         }
         ExternalControls.refreshAll(this)
+        refreshStatusNotification()
         return START_STICKY
+    }
+
+    /** Load settings synchronously once so lifecycle decisions are accurate. */
+    private fun ensureSettingsLoaded() {
+        if (!settingsLoaded) {
+            ReminderEngine.settings = runBlocking { repo.flow.first() }
+            settingsLoaded = true
+        }
+    }
+
+    private fun monitoringWanted(): Boolean {
+        val s = ReminderEngine.settings
+        return (s.mindfulUsageEnabled || s.appLimits.isNotEmpty()) && UsageTracker.hasAccess(this)
     }
 
     /** A manual resume cancels any pending timed-pause auto-resume. */
@@ -109,20 +142,31 @@ class ReminderService : Service() {
         }
     }
 
-    private fun stopEverything() {
+    /** Stop the 20-20-20 engine, but leave the service running if it's still
+     *  wanted for usage monitoring. */
+    private fun stopEngine() {
+        if (!started && !ReminderEngine.state.value.isRunning) return
         val settings = ReminderEngine.settings
         ReminderEngine.stop()
         BreakOverlay.hide(this)
         NotificationManagerCompat.from(this).cancel(Notifications.ID_BREAK)
         MediaPauser.forget(this)
-        // So a turned-off app doesn't stay forgotten, schedule a gentle nudge.
         if (settings.remindWhenOff) {
             ReminderScheduler.scheduleOffReminder(this, settings.remindWhenOffHours)
         }
         started = false
         ExternalControls.refreshAll(this)
+    }
+
+    private fun fullStop() {
+        stopEngine()
+        LimitOverlay.hide(this)
         stopForegroundCompat()
         stopSelf()
+    }
+
+    private fun evaluateLifecycle() {
+        if (!RunState.isEnabled(this) && !monitoringWanted()) fullStop()
     }
 
     // ---- Engine wiring -------------------------------------------------------
@@ -137,17 +181,17 @@ class ReminderService : Service() {
                 val st = ReminderEngine.state.value
                 BreakOverlay.update(st.secondsRemaining, 1f - st.progress.coerceIn(0f, 1f))
             }
-            // Check screen-time roughly once a minute (ticks fire while in use).
-            if (++tickCounter >= 60) {
-                tickCounter = 0
-                checkMindfulUsage()
-            }
         }
     }
 
     private fun observeSettings() {
         scope.launch {
-            repo.flow.collect { ReminderEngine.applySettings(it) }
+            repo.flow.collect {
+                ReminderEngine.applySettings(it)
+                settingsLoaded = true
+                // Disabling monitoring while reminders are off should release us.
+                evaluateLifecycle()
+            }
         }
     }
 
@@ -155,8 +199,8 @@ class ReminderService : Service() {
         scope.launch {
             ReminderEngine.state.collect { state ->
                 if (state.phase == Phase.IDLE && started) {
-                    // Engine stopped from elsewhere.
-                    stopEverything()
+                    stopEngine()
+                    evaluateLifecycle()
                 } else {
                     refreshStatusNotification()
                 }
@@ -233,13 +277,19 @@ class ReminderService : Service() {
         }
     }
 
-    private fun checkMindfulUsage() {
+    /** Runs every ~20s (faster while a limit overlay is up) for usage reminders. */
+    private fun runMonitorTick() {
         val s = ReminderEngine.settings
         if (!s.mindfulUsageEnabled && s.appLimits.isEmpty()) return
         if (!UsageTracker.hasAccess(this)) return
-        // During a focus session, stay quiet — no usage or app-limit nudges.
-        if (RunState.isFocusActive(this)) return
+        // Focus session or screen off → stay quiet and drop any limit overlay.
+        val interactive = getSystemService(PowerManager::class.java)?.isInteractive ?: true
+        if (RunState.isFocusActive(this) || !interactive) {
+            LimitOverlay.hide(this)
+            return
+        }
 
+        // ---- Total daily screen-time nudge ----
         if (s.mindfulUsageEnabled) {
             val minutes = UsageTracker.todayForegroundMinutes(this)
             val threshold = RunState.usageNudgeThreshold(this, s.mindfulUsageThresholdMin)
@@ -249,17 +299,55 @@ class ReminderService : Service() {
             }
         }
 
-        if (s.appLimits.isNotEmpty()) {
-            val perApp = UsageTracker.perAppMinutesToday(this)
-            val alreadyNudged = RunState.appNudgedToday(this)
-            for ((pkg, limit) in s.appLimits) {
-                if (pkg in alreadyNudged) continue
-                if ((perApp[pkg] ?: 0) >= limit) {
-                    postAppLimitNudge(pkg, perApp[pkg] ?: 0)
-                    RunState.markAppNudged(this, pkg)
-                }
+        // ---- Per-app limits ----
+        if (s.appLimits.isEmpty()) {
+            LimitOverlay.hide(this)
+            return
+        }
+        val fg = UsageTracker.currentForegroundApp(this)
+        // Drop the overlay as soon as the user leaves the over-limit app.
+        if (LimitOverlay.isShowing() && LimitOverlay.showingPackage() != fg) {
+            LimitOverlay.hide(this)
+        }
+        if (LimitOverlay.isShowing()) return
+
+        val perApp = UsageTracker.perAppMinutesToday(this)
+        val now = System.currentTimeMillis()
+        val overlayOk = AndroidSettings.canDrawOverlays(this)
+        for ((pkg, limit) in s.appLimits) {
+            if ((perApp[pkg] ?: 0) < limit) continue
+            if (now < RunState.limitMutedUntil(this, pkg)) continue
+            val used = perApp[pkg] ?: 0
+            if (overlayOk && fg == pkg) {
+                showLimitOverlay(pkg, used, limit)
+                break // one at a time
+            } else if (!overlayOk) {
+                // No overlay permission → fall back to a notification with a cooldown.
+                postAppLimitNudge(pkg, used)
+                RunState.setLimitMute(this, pkg, now + s.mindfulUsageRepeatMin.toLong() * 60_000)
             }
         }
+    }
+
+    private fun showLimitOverlay(pkg: String, usedMinutes: Int, limitMinutes: Int) {
+        val label = UsageTracker.appLabel(this, pkg)
+        val usedText = getString(
+            R.string.limit_used_text, formatDuration(usedMinutes), formatDuration(limitMinutes),
+        )
+        LimitOverlay.show(
+            context = this,
+            packageName = pkg,
+            appLabel = label,
+            usedText = usedText,
+            onSnooze = {
+                RunState.setLimitMute(this, pkg, System.currentTimeMillis() + 5 * 60_000L)
+                LimitOverlay.hide(this)
+            },
+            onDismiss = {
+                RunState.setLimitMute(this, pkg, System.currentTimeMillis() + 15 * 60_000L)
+                LimitOverlay.hide(this)
+            },
+        )
     }
 
     @SuppressLint("MissingPermission") // guarded by canPostNotifications()
@@ -323,7 +411,7 @@ class ReminderService : Service() {
     // Guarded by canPostNotifications(); lint can't see through the helper.
     @SuppressLint("MissingPermission")
     private fun refreshStatusNotification() {
-        if (!started || !canPostNotifications()) return
+        if ((!started && !monitoringWanted()) || !canPostNotifications()) return
         NotificationManagerCompat.from(this)
             .notify(Notifications.ID_STATUS, buildStatusNotification())
     }
@@ -331,7 +419,9 @@ class ReminderService : Service() {
     private fun buildStatusNotification(): Notification {
         val state = ReminderEngine.state.value
         val resumeAt = RunState.resumeAt(this)
+        val monitorOnly = !state.isRunning && monitoringWanted()
         val contentText = when {
+            monitorOnly -> getString(R.string.notif_monitoring)
             !state.isRunning -> getString(R.string.home_state_idle)
             state.paused && resumeAt > System.currentTimeMillis() ->
                 getString(R.string.notif_paused_until, formatTimeOfDay(resumeAt))
@@ -363,13 +453,15 @@ class ReminderService : Service() {
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
 
-        // Pause / Resume toggle.
-        if (state.paused) {
-            builder.addAction(0, getString(R.string.action_resume), servicePI(ACTION_RESUME, 1))
-        } else {
-            builder.addAction(0, getString(R.string.action_pause), servicePI(ACTION_PAUSE, 2))
+        // Engine controls only make sense while the 20-20-20 reminder is running.
+        if (state.isRunning) {
+            if (state.paused) {
+                builder.addAction(0, getString(R.string.action_resume), servicePI(ACTION_RESUME, 1))
+            } else {
+                builder.addAction(0, getString(R.string.action_pause), servicePI(ACTION_PAUSE, 2))
+            }
+            builder.addAction(0, getString(R.string.action_stop), servicePI(ACTION_STOP, 3))
         }
-        builder.addAction(0, getString(R.string.action_stop), servicePI(ACTION_STOP, 3))
 
         return builder.build()
     }
@@ -424,6 +516,7 @@ class ReminderService : Service() {
     override fun onDestroy() {
         scope.cancel()
         runCatching { unregisterReceiver(screenReceiver) }
+        LimitOverlay.hide(this)
         ReminderEngine.onShowBreak = null
         ReminderEngine.onBreakEnd = null
         ReminderEngine.onTick = null
@@ -438,6 +531,7 @@ class ReminderService : Service() {
         const val ACTION_TOGGLE = "com.eyecare.lookaway.TOGGLE"
         const val ACTION_SKIP = "com.eyecare.lookaway.SKIP"
         const val ACTION_BREAK_NOW = "com.eyecare.lookaway.BREAK_NOW"
+        const val ACTION_START_MONITOR = "com.eyecare.lookaway.START_MONITOR"
 
         fun formatClock(totalSeconds: Int): String =
             com.eyecare.lookaway.util.Format.clock(totalSeconds)

@@ -60,6 +60,23 @@ object UsageTracker {
     fun appMinutesToday(context: Context, packageName: String): Int =
         perAppMinutesToday(context)[packageName] ?: 0
 
+    /** The package most recently brought to the foreground (last ~minute), or null. */
+    fun currentForegroundApp(context: Context): String? {
+        if (!hasAccess(context)) return null
+        val usm = context.getSystemService<UsageStatsManager>() ?: return null
+        val now = System.currentTimeMillis()
+        val events = runCatching { usm.queryEvents(now - 60_000, now) }.getOrNull() ?: return null
+        var pkg: String? = null
+        val event = android.app.usage.UsageEvents.Event()
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            if (event.eventType == android.app.usage.UsageEvents.Event.MOVE_TO_FOREGROUND) {
+                pkg = event.packageName
+            }
+        }
+        return pkg
+    }
+
     /** Best-effort human label for a package. */
     fun appLabel(context: Context, packageName: String): String = runCatching {
         val pm = context.packageManager

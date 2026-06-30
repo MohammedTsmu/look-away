@@ -47,6 +47,13 @@ object ReminderScheduler {
         ContextCompat.startForegroundService(context, intent)
     }
 
+    /** Keep the service alive for usage monitoring even when reminders are off. */
+    fun startMonitor(context: Context) {
+        val intent = Intent(context, ReminderService::class.java)
+            .setAction(ReminderService.ACTION_START_MONITOR)
+        ContextCompat.startForegroundService(context, intent)
+    }
+
     /** Pause now and schedule an automatic resume [millis] from now. */
     fun pauseFor(context: Context, millis: Long) {
         sendAction(context, ReminderService.ACTION_PAUSE)
