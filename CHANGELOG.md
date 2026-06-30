@@ -8,8 +8,8 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.19.8` = generation 1, **19 features**,
-**8 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
+So the version literally encodes the scope: `1.19.9` = generation 1, **19 features**,
+**9 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
 ## Feature inventory (19)
 
@@ -47,6 +47,20 @@ So the version literally encodes the scope: `1.19.8` = generation 1, **19 featur
 | 6 | Live settings (interval changes restart the countdown immediately) + overlay-window break that shows full-screen even on OEMs that block background activity starts (MIUI) |
 | 7 | Break is never invisible — always post the break notification as a fallback even when the overlay path is taken/fails; service owns sound/vibration (no double feedback) |
 | 8 | Layout direction (RTL/LTR) flips instantly on language change, driven from the active locale |
+| 9 | Overlay break stability — non-focusable overlay window + quiet companion notification so it no longer flickers/drops behind; app icons in the picker and limit lists |
+
+---
+
+## 1.19.9
+
+- **Fix — break overlay flickered / dropped behind other apps:** when the overlay
+  showed, the app still posted a *high-importance* break notification, whose
+  heads-up popped over the overlay and stole focus (especially on MIUI). Now the
+  overlay's companion notification is **quiet** (silent status channel, no
+  heads-up), and the overlay window is **non-focusable** so it stops fighting the
+  app underneath. Touches on Skip still work; the break stays put.
+- **App icons** now appear in the app picker and the per-app limit list, instead
+  of bare package names.
 
 ---
 

@@ -178,13 +178,17 @@ class ReminderService : Service() {
         // background activity starts (MIUI), as long as overlay access is granted.
         val overlayShown = AndroidSettings.canDrawOverlays(this) &&
             BreakOverlay.show(this, showSkip = !s.strictMode)
-        if (overlayShown) BreakOverlay.update(s.breakSeconds, 1f)
-
-        // ALWAYS post a notification so a break is never invisible. Use a
-        // full-screen intent only when the overlay isn't up (avoids a double
-        // break on normal devices); otherwise a heads-up + tap-to-open fallback.
-        postBreakNotification(fullScreen = !overlayShown)
-        if (!overlayShown) launchBreakActivityIfPossible()
+        if (overlayShown) {
+            BreakOverlay.update(s.breakSeconds, 1f)
+            // A QUIET companion notification (no heads-up) so it doesn't pop over
+            // and steal focus from the overlay — that caused the overlay to flicker
+            // and drop behind other apps on some devices.
+            postBreakNotification(fullScreen = false, quiet = true)
+        } else {
+            // No overlay → rely on the full-screen-intent notification + Activity.
+            postBreakNotification(fullScreen = true, quiet = false)
+            launchBreakActivityIfPossible()
+        }
 
         Feedback.playBreakStart(this, s.sound, s.vibrate, s.soundUri)
     }
@@ -369,7 +373,7 @@ class ReminderService : Service() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun postBreakNotification(fullScreen: Boolean) {
+    private fun postBreakNotification(fullScreen: Boolean, quiet: Boolean = false) {
         val s = ReminderEngine.settings
         val openBreak = PendingIntent.getActivity(
             this, 10,
@@ -377,20 +381,24 @@ class ReminderService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        val builder = NotificationCompat.Builder(this, Notifications.CHANNEL_BREAK)
+        // Quiet companion goes on the silent status channel so it never pops a
+        // heads-up; the real alert uses the high-importance break channel.
+        val channel = if (quiet) Notifications.CHANNEL_STATUS else Notifications.CHANNEL_BREAK
+        val builder = NotificationCompat.Builder(this, channel)
             .setSmallIcon(R.drawable.ic_eye)
             .setContentTitle(getString(R.string.notif_break_title))
             .setContentText(getString(R.string.notif_break_text, s.breakSeconds))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setPriority(if (quiet) NotificationCompat.PRIORITY_LOW else NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(openBreak)
-            .setOngoing(fullScreen)
+            .setOngoing(fullScreen || quiet)
+            .addAction(0, getString(R.string.action_done), servicePI(ACTION_SKIP, 4))
 
-        if (fullScreen) {
-            builder.setFullScreenIntent(openBreak, true)
+        if (quiet) {
+            builder.setSilent(true)
         } else {
-            builder.addAction(0, getString(R.string.action_done), servicePI(ACTION_SKIP, 4))
+            builder.setCategory(NotificationCompat.CATEGORY_ALARM)
+            if (fullScreen) builder.setFullScreenIntent(openBreak, true)
         }
 
         if (canPostNotifications()) {

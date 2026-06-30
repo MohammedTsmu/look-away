@@ -305,6 +305,7 @@ fun SettingsScreen(
                 } else {
                     s.appLimits.toSortedMap().forEach { (pkg, limit) ->
                         AppLimitRow(
+                            pkg = pkg,
                             label = viewModel.appLabel(pkg),
                             limit = limit,
                             onChange = { viewModel.setAppLimit(pkg, it) },
@@ -478,12 +479,14 @@ private fun TimeRow(label: String, minutes: Int, onPicked: (Int) -> Unit) {
 }
 
 @Composable
-private fun AppLimitRow(label: String, limit: Int, onChange: (Int) -> Unit, onRemove: () -> Unit) {
+private fun AppLimitRow(pkg: String, label: String, limit: Int, onChange: (Int) -> Unit, onRemove: () -> Unit) {
     Column(Modifier.padding(vertical = 4.dp, horizontal = 4.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            com.eyecare.lookaway.ui.AppIcon(pkg, size = 28.dp)
+            Spacer(Modifier.width(10.dp))
             Text(
                 label,
                 modifier = Modifier.weight(1f),

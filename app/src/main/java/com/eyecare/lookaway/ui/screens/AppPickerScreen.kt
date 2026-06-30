@@ -4,9 +4,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -32,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.eyecare.lookaway.R
+import com.eyecare.lookaway.ui.AppIcon
 import com.eyecare.lookaway.ui.AppViewModel
 import com.eyecare.lookaway.usage.InstalledApp
 
@@ -64,18 +68,24 @@ fun AppPickerScreen(viewModel: AppViewModel, onPicked: (String) -> Unit, onBack:
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize().padding(inner)) {
                 items(list, key = { it.packageName }) { app ->
-                    Column(
-                        Modifier
+                    Row(
+                        modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onPicked(app.packageName) }
-                            .padding(horizontal = 20.dp, vertical = 14.dp),
+                            .padding(horizontal = 20.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(app.label, fontWeight = FontWeight.Medium)
-                        Text(
-                            app.packageName,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        AppIcon(app.packageName)
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(app.label, fontWeight = FontWeight.Medium, maxLines = 1)
+                            Text(
+                                app.packageName,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                            )
+                        }
                     }
                     HorizontalDivider()
                 }

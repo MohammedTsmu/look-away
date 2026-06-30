@@ -128,7 +128,11 @@ object BreakOverlay {
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             type,
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+            // NOT_FOCUSABLE keeps the window from grabbing input focus, so it
+            // doesn't fight the app underneath (which made it flicker / drop
+            // behind on some OEMs). Touches on our views (Skip) still work.
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
