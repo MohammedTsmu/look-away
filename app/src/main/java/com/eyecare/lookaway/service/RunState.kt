@@ -102,6 +102,31 @@ object RunState {
         p.edit().putStringSet(KEY_LIMIT_MUTE, without).apply()
     }
 
+    // How many times an app's limit reminder was dismissed today (for escalation).
+    private const val KEY_DISMISS_DAY = "limit_dismiss_day"
+    private const val KEY_DISMISS_COUNTS = "limit_dismiss_counts"
+
+    fun limitDismissCount(context: Context, pkg: String): Int {
+        val p = prefs(context)
+        if (p.getInt(KEY_DISMISS_DAY, -1) != dayKey()) return 0
+        val set = p.getStringSet(KEY_DISMISS_COUNTS, emptySet()) ?: emptySet()
+        return set.firstOrNull { it.substringBeforeLast('=') == pkg }
+            ?.substringAfterLast('=')?.toIntOrNull() ?: 0
+    }
+
+    fun incLimitDismissCount(context: Context, pkg: String) {
+        val p = prefs(context)
+        val today = dayKey()
+        val set = if (p.getInt(KEY_DISMISS_DAY, -1) == today) {
+            p.getStringSet(KEY_DISMISS_COUNTS, emptySet()) ?: emptySet()
+        } else emptySet()
+        val current = set.firstOrNull { it.substringBeforeLast('=') == pkg }
+            ?.substringAfterLast('=')?.toIntOrNull() ?: 0
+        val without = set.filterNot { it.substringBeforeLast('=') == pkg }.toMutableSet()
+        without.add("$pkg=${current + 1}")
+        p.edit().putInt(KEY_DISMISS_DAY, today).putStringSet(KEY_DISMISS_COUNTS, without).apply()
+    }
+
     private fun dayKey(): Int {
         val c = java.util.Calendar.getInstance()
         return c.get(java.util.Calendar.YEAR) * 1000 + c.get(java.util.Calendar.DAY_OF_YEAR)

@@ -9,6 +9,7 @@ import android.os.Build
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.getSystemService
@@ -17,11 +18,14 @@ import com.eyecare.lookaway.util.LocaleManager
 
 /**
  * A calming full-screen reminder shown while the user is inside an app that has
- * passed its daily limit. Not a block — just a strong, dismissible nudge with
- * "Snooze 5 min" and "Dismiss" actions. Drawn as an overlay window so it works
- * across OEMs (needs "Display over other apps").
+ * passed its daily limit. Not a block — a strong, dismissible nudge with the
+ * app's icon, how far over the limit you are, snooze options, a one-tap "leave
+ * app", and a per-visit Dismiss. Drawn as an overlay window (needs "Display over
+ * other apps").
  */
 object LimitOverlay {
+
+    private val snoozeOptions = intArrayOf(5, 15, 30)
 
     private var root: View? = null
     private var pkg: String? = null
@@ -36,7 +40,10 @@ object LimitOverlay {
         packageName: String,
         appLabel: String,
         usedText: String,
-        onSnooze: () -> Unit,
+        overText: String,
+        dismissNote: String?,
+        onSnooze: (Int) -> Unit,
+        onLeave: () -> Unit,
         onDismiss: () -> Unit,
     ): Boolean {
         if (root != null) return true
@@ -48,7 +55,7 @@ object LimitOverlay {
         val column = LinearLayout(l).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setPadding(px(32), px(32), px(32), px(32))
+            setPadding(px(28), px(28), px(28), px(28))
             background = GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
                 intArrayOf(Color.parseColor("#0E3B3A"), Color.parseColor("#05100F")),
@@ -64,32 +71,66 @@ object LimitOverlay {
             if (bold) setTypeface(typeface, android.graphics.Typeface.BOLD)
         }
 
-        column.addView(text(l.getString(R.string.app_limit_nudge_title), 16f, false, 210))
-        column.addView(text(appLabel, 30f, true).apply { setPadding(0, px(8), 0, px(4)) })
-        column.addView(text(usedText, 16f, false, 210).apply { setPadding(0, 0, 0, px(28)) })
+        val icon = ImageView(l).apply {
+            setImageDrawable(
+                runCatching { context.packageManager.getApplicationIcon(packageName) }.getOrNull(),
+            )
+        }
+        column.addView(
+            icon,
+            LinearLayout.LayoutParams(px(64), px(64)).apply { bottomMargin = px(12) },
+        )
 
-        fun button(label: String, filled: Boolean, onClick: () -> Unit) = TextView(l).apply {
+        column.addView(text(l.getString(R.string.app_limit_nudge_title), 14f, false, 200))
+        column.addView(text(appLabel, 28f, true).apply { setPadding(0, px(4), 0, px(4)) })
+        column.addView(text(usedText, 15f, false, 220))
+        column.addView(text(overText, 15f, false, 220).apply { setPadding(0, px(2), 0, px(if (dismissNote != null) 4 else 24)) })
+        if (dismissNote != null) {
+            column.addView(text(dismissNote, 13f, true, 235).apply {
+                setTextColor(Color.parseColor("#FFD9A0"))
+                setPadding(0, px(4), 0, px(24))
+            })
+        }
+
+        fun pill(label: String, filled: Boolean, onClick: () -> Unit) = TextView(l).apply {
             text = label
             setTextColor(Color.WHITE)
-            textSize = 15f
+            textSize = 14f
             gravity = Gravity.CENTER
             background = GradientDrawable().apply {
-                cornerRadius = px(28).toFloat()
-                setColor(if (filled) Color.argb(60, 255, 255, 255) else Color.argb(28, 255, 255, 255))
+                cornerRadius = px(24).toFloat()
+                setColor(if (filled) Color.argb(60, 255, 255, 255) else Color.argb(26, 255, 255, 255))
             }
-            setPadding(px(36), px(12), px(36), px(12))
+            setPadding(px(22), px(10), px(22), px(10))
             isClickable = true
             setOnClickListener { onClick() }
         }
 
+        // Snooze options row (5 / 15 / 30 min).
+        column.addView(text(l.getString(R.string.limit_snooze_label), 13f, false, 180).apply {
+            setPadding(0, 0, 0, px(6))
+        })
+        val snoozeRow = LinearLayout(l).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
+        snoozeOptions.forEach { minutes ->
+            snoozeRow.addView(
+                pill(l.getString(R.string.minutes_short, minutes), false) { onSnooze(minutes) },
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply { marginStart = px(5); marginEnd = px(5) },
+            )
+        }
+        column.addView(snoozeRow, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,
+        ).apply { bottomMargin = px(16) })
+
         column.addView(
-            button(l.getString(R.string.limit_snooze), true) { onSnooze() },
+            pill(l.getString(R.string.limit_leave), true) { onLeave() },
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { gravity = Gravity.CENTER_HORIZONTAL; bottomMargin = px(12) },
+            ).apply { gravity = Gravity.CENTER_HORIZONTAL; bottomMargin = px(10) },
         )
         column.addView(
-            button(l.getString(R.string.limit_dismiss), false) { onDismiss() },
+            pill(l.getString(R.string.limit_dismiss), false) { onDismiss() },
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,
             ).apply { gravity = Gravity.CENTER_HORIZONTAL },

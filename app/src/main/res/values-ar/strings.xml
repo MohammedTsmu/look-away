@@ -28,8 +28,13 @@
     <string name="usage_nudge_text">قضيت %1$s أمام الشاشة اليوم. ربما حان وقت الابتعاد قليلًا والاستمتاع بالحياة الحقيقية.</string>
     <string name="app_limit_nudge_title">تم بلوغ حد التطبيق</string>
     <string name="app_limit_nudge_text">قضيت %2$s في %1$s اليوم. ما رأيك باستراحة حقيقية؟</string>
-    <string name="limit_used_text">%1$s مُستخدَمة اليوم · الحد %2$s</string>
-    <string name="limit_snooze">تأجيل 5 دقائق</string>
+    <string name="limit_used_today">%1$s اليوم</string>
+    <string name="limit_over_text">%1$s فوق حدّك البالغ %2$s</string>
+    <string name="limit_reached_text">لقد بلغت حدّك البالغ %1$s</string>
+    <string name="limit_dismissed_n">تجاهلته %1$d مرات اليوم</string>
+    <string name="limit_snooze_label">تأجيل</string>
+    <string name="minutes_short">%1$d دقيقة</string>
+    <string name="limit_leave">مغادرة التطبيق</string>
     <string name="limit_dismiss">تجاهل</string>
     <string name="dur_h_m">%1$d س %2$d د</string>
     <string name="dur_m">%1$d د</string>

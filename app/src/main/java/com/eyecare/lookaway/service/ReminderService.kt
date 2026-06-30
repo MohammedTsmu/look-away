@@ -342,25 +342,48 @@ class ReminderService : Service() {
 
     private fun showLimitOverlay(pkg: String, usedMinutes: Int, limitMinutes: Int) {
         val label = UsageTracker.appLabel(this, pkg)
-        val usedText = getString(
-            R.string.limit_used_text, formatDuration(usedMinutes), formatDuration(limitMinutes),
-        )
+        val over = usedMinutes - limitMinutes
+        val usedText = getString(R.string.limit_used_today, formatDuration(usedMinutes))
+        val overText = if (over > 0) {
+            getString(R.string.limit_over_text, formatDuration(over), formatDuration(limitMinutes))
+        } else {
+            getString(R.string.limit_reached_text, formatDuration(limitMinutes))
+        }
+        val count = RunState.limitDismissCount(this, pkg)
+        val dismissNote = if (count >= 2) getString(R.string.limit_dismissed_n, count) else null
+
         LimitOverlay.show(
             context = this,
             packageName = pkg,
             appLabel = label,
             usedText = usedText,
+            overText = overText,
+            dismissNote = dismissNote,
             // Snooze: real quiet that survives switching apps.
-            onSnooze = {
-                RunState.setLimitMute(this, pkg, System.currentTimeMillis() + 5 * 60_000L)
+            onSnooze = { minutes ->
+                RunState.setLimitMute(this, pkg, System.currentTimeMillis() + minutes * 60_000L)
                 LimitOverlay.hide(this)
+            },
+            // One-tap healthy exit to the home screen.
+            onLeave = {
+                LimitOverlay.hide(this)
+                dismissedApps.add(pkg)
+                goHome()
             },
             // Dismiss: quiet only for this visit; reopening the app re-shows it.
             onDismiss = {
                 dismissedApps.add(pkg)
+                RunState.incLimitDismissCount(this, pkg)
                 LimitOverlay.hide(this)
             },
         )
+    }
+
+    private fun goHome() {
+        val home = Intent(Intent.ACTION_MAIN)
+            .addCategory(Intent.CATEGORY_HOME)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { startActivity(home) }
     }
 
     @SuppressLint("MissingPermission") // guarded by canPostNotifications()

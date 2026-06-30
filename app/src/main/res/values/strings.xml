@@ -28,8 +28,13 @@
     <string name="usage_nudge_text">You\'ve been on screen %1$s today. Maybe step away and enjoy real life for a bit.</string>
     <string name="app_limit_nudge_title">App limit reached</string>
     <string name="app_limit_nudge_text">You\'ve spent %2$s on %1$s today. Time for a real break?</string>
-    <string name="limit_used_text">%1$s used today · limit %2$s</string>
-    <string name="limit_snooze">Snooze 5 min</string>
+    <string name="limit_used_today">%1$s today</string>
+    <string name="limit_over_text">%1$s over your %2$s limit</string>
+    <string name="limit_reached_text">You\'ve reached your %1$s limit</string>
+    <string name="limit_dismissed_n">Dismissed %1$d times today</string>
+    <string name="limit_snooze_label">Snooze</string>
+    <string name="minutes_short">%1$d min</string>
+    <string name="limit_leave">Leave app</string>
     <string name="limit_dismiss">Dismiss</string>
     <string name="dur_h_m">%1$dh %2$dm</string>
     <string name="dur_m">%1$dm</string>

@@ -8,8 +8,8 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.21.12` = generation 1, **21 features**,
-**12 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
+So the version literally encodes the scope: `1.21.13` = generation 1, **21 features**,
+**13 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
 ## Feature inventory (21)
 
@@ -53,6 +53,19 @@ So the version literally encodes the scope: `1.21.12` = generation 1, **21 featu
 | 10 | App picker lists all installed apps (declared launcher `<queries>` for Android 11+ package visibility) |
 | 11 | App limits get a full-screen reminder (Snooze 5 min / Dismiss) shown only while you're in the over-limit app; usage monitoring now runs in its own service loop so limits work even when the 20-20-20 reminder is off |
 | 12 | App-limit Snooze vs Dismiss now behave distinctly — Snooze gives true timed quiet; Dismiss is per-visit so reopening the app re-shows the reminder (no sneaking back) |
+| 13 | Richer app-limit overlay — app icon, "over by" wording, variable snooze (5/15/30), a one-tap "Leave app", and an escalating "dismissed N times today" note |
+
+---
+
+## 1.21.13
+
+- **Nicer, smarter app-limit reminder:**
+  - Shows the **app's icon** and clearer wording — e.g. "1h 20m today" and
+    "**20m over your 1h limit**".
+  - **Variable snooze**: choose **5 / 15 / 30 min** instead of a fixed 5.
+  - **"Leave app"** button — one tap drops you to the home screen (a gentle exit).
+  - **Escalation**: once you've dismissed an app's reminder a few times in a day,
+    it adds a "**Dismissed N times today**" note for a little accountability.
 
 ---
 
