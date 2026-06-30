@@ -50,6 +50,25 @@ object RunState {
             .apply()
     }
 
+    // Per-app limit nudges already shown today (own day key, independent of total).
+    private const val KEY_APP_DAY = "app_nudge_day"
+    private const val KEY_APP_NUDGED = "app_nudged"
+
+    fun appNudgedToday(context: Context): Set<String> {
+        val p = prefs(context)
+        return if (p.getInt(KEY_APP_DAY, -1) != dayKey()) emptySet()
+        else p.getStringSet(KEY_APP_NUDGED, emptySet()) ?: emptySet()
+    }
+
+    fun markAppNudged(context: Context, pkg: String) {
+        val p = prefs(context)
+        val today = dayKey()
+        val current = if (p.getInt(KEY_APP_DAY, -1) == today) {
+            p.getStringSet(KEY_APP_NUDGED, emptySet()) ?: emptySet()
+        } else emptySet()
+        p.edit().putInt(KEY_APP_DAY, today).putStringSet(KEY_APP_NUDGED, current + pkg).apply()
+    }
+
     private fun dayKey(): Int {
         val c = java.util.Calendar.getInstance()
         return c.get(java.util.Calendar.YEAR) * 1000 + c.get(java.util.Calendar.DAY_OF_YEAR)

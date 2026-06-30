@@ -25,6 +25,8 @@
     <string name="action_turn_on">تشغيل</string>
     <string name="usage_nudge_title">حان وقت رفع نظرك</string>
     <string name="usage_nudge_text">قضيت %1$s أمام الشاشة اليوم. ربما حان وقت الابتعاد قليلًا والاستمتاع بالحياة الحقيقية.</string>
+    <string name="app_limit_nudge_title">تم بلوغ حد التطبيق</string>
+    <string name="app_limit_nudge_text">قضيت %2$s في %1$s اليوم. ما رأيك باستراحة حقيقية؟</string>
     <string name="dur_h_m">%1$d س %2$d د</string>
     <string name="dur_m">%1$d د</string>
 
@@ -105,6 +107,15 @@
     <string name="settings_mindful_desc">تذكير لطيف برفع نظرك بعد وقت طويل أمام الشاشة اليوم. يتطلب الوصول إلى بيانات الاستخدام.</string>
     <string name="settings_mindful_after">بعد</string>
     <string name="settings_mindful_repeat">ثم كل</string>
+    <string name="settings_app_limits">حدود لكل تطبيق</string>
+    <string name="settings_app_limits_desc">احصل على تنبيه لطيف عند تجاوز وقت يومي لتطبيق تختاره</string>
+    <string name="app_limits_add">إضافة حد لتطبيق</string>
+    <string name="app_limits_empty">لا توجد حدود بعد</string>
+    <string name="app_limit_used">%1$s اليوم</string>
+    <string name="app_limit_remove">إزالة</string>
+    <string name="app_picker_title">اختر تطبيقًا</string>
+    <string name="app_picker_loading">جارٍ تحميل التطبيقات…</string>
+    <string name="home_screen_today">الشاشة اليوم</string>
 
     <!-- Turn-off bottom sheet -->
     <string name="sheet_title">إيقاف أم تأجيل؟</string>

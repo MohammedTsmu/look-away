@@ -30,6 +30,8 @@ data class Settings(
     val mindfulUsageEnabled: Boolean = false,
     val mindfulUsageThresholdMin: Int = 120,
     val mindfulUsageRepeatMin: Int = 30,
+    /** Per-app daily soft limits: package name -> minutes. */
+    val appLimits: Map<String, Int> = emptyMap(),
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val accentIndex: Int = 0,
 ) {

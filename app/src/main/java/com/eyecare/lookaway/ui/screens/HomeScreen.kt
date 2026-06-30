@@ -43,10 +43,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -119,7 +124,8 @@ fun HomeScreen(
         ) {
             val needMedia = settings.pauseMediaOnBreak && !permissions.mediaAccess
             val needFullScreen = settings.fullScreenBreak && !permissions.fullScreenIntent
-            val needUsage = settings.mindfulUsageEnabled && !permissions.usageAccess
+            val needUsage = (settings.mindfulUsageEnabled || settings.appLimits.isNotEmpty()) &&
+                !permissions.usageAccess
             if (!permissions.allEssentialGranted || !permissions.overlay ||
                 !permissions.batteryUnrestricted || needMedia || needFullScreen || needUsage
             ) {
@@ -215,6 +221,43 @@ fun HomeScreen(
             }
 
             Spacer(Modifier.height(20.dp))
+
+            // Today's screen time (when Usage Access is granted).
+            var screenMin by remember { mutableIntStateOf(-1) }
+            LaunchedEffect(permissions.usageAccess) {
+                if (permissions.usageAccess) {
+                    while (true) {
+                        screenMin = withContext(Dispatchers.IO) { viewModel.screenMinutesToday() }
+                        delay(60_000)
+                    }
+                }
+            }
+            if (screenMin >= 0) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    ),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            stringResource(R.string.home_screen_today),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            screenTimeLabel(screenMin),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+            }
 
             // Today's tally + the current rule summary.
             Row(
@@ -413,6 +456,16 @@ private fun PermissionRow(label: String, desc: String, onGrant: () -> Unit) {
         Button(onClick = onGrant, shape = RoundedCornerShape(12.dp)) {
             Text(stringResource(R.string.perm_grant))
         }
+    }
+}
+
+private fun screenTimeLabel(minutes: Int): String {
+    val h = minutes / 60
+    val m = minutes % 60
+    return when {
+        h > 0 && m > 0 -> "${h}h ${m}m"
+        h > 0 -> "${h}h"
+        else -> "${m}m"
     }
 }
 

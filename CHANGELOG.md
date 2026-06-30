@@ -8,10 +8,10 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.18.8` = generation 1, **18 features**,
+So the version literally encodes the scope: `1.19.8` = generation 1, **19 features**,
 **8 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
-## Feature inventory (18)
+## Feature inventory (19)
 
 | # | Feature |
 |---|---------|
@@ -33,6 +33,7 @@ So the version literally encodes the scope: `1.18.8` = generation 1, **18 featur
 | 16 | Arabic localization + in-app language switch (System / English / العربية) with RTL |
 | 17 | Selectable break sound (pick any notification tone) |
 | 18 | Mindful-usage reminder — gentle, dismissible nudge to step away after a configurable amount of daily screen time (Usage Access; off by default) |
+| 19 | Per-app daily soft limits (pick apps, set a limit, gentle nudge when exceeded — no blocking) + a "screen time today" stat on the home screen |
 
 ## Enhancement passes (3)
 
@@ -48,6 +49,16 @@ So the version literally encodes the scope: `1.18.8` = generation 1, **18 featur
 | 8 | Layout direction (RTL/LTR) flips instantly on language change, driven from the active locale |
 
 ---
+
+## 1.19.8
+
+- **New — Per-app daily limits (gentle):** pick specific apps and set a daily
+  time limit each; when you pass a limit, a soft, dismissible notification nudges
+  you ("You've spent 1h on YouTube today — time for a real break?"). No blocking,
+  one nudge per app per day. Manage them in Settings → Mindful usage → Per-app
+  limits, with an app picker.
+- **New — "Screen time today" on the home screen:** when Usage Access is granted,
+  the home screen shows today's total screen time at a glance.
 
 ## 1.18.8
 

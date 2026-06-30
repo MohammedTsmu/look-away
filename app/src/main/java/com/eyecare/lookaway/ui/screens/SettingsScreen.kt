@@ -19,16 +19,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +40,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,6 +64,7 @@ fun SettingsScreen(
     viewModel: AppViewModel,
     onBack: () -> Unit,
     onOpenIntent: (android.content.Intent) -> Unit = {},
+    onAddAppLimit: () -> Unit = {},
 ) {
     val s by viewModel.settings.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -275,6 +281,42 @@ fun SettingsScreen(
                         onChange = { viewModel.setMindfulRepeat((Math.round(it / 10f) * 10)) },
                     )
                 }
+
+                HorizontalDivider(Modifier.padding(vertical = 10.dp))
+                Text(
+                    stringResource(R.string.settings_app_limits),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+                Text(
+                    stringResource(R.string.settings_app_limits_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp),
+                )
+                if (s.appLimits.isEmpty()) {
+                    Text(
+                        stringResource(R.string.app_limits_empty),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 4.dp),
+                    )
+                } else {
+                    s.appLimits.toSortedMap().forEach { (pkg, limit) ->
+                        AppLimitRow(
+                            label = viewModel.appLabel(pkg),
+                            limit = limit,
+                            onChange = { viewModel.setAppLimit(pkg, it) },
+                            onRemove = { viewModel.removeAppLimit(pkg) },
+                        )
+                    }
+                }
+                TextButton(onClick = onAddAppLimit, modifier = Modifier.padding(top = 4.dp)) {
+                    Icon(Icons.Filled.Add, contentDescription = null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.app_limits_add))
+                }
             }
 
             // ---- Appearance ----
@@ -431,6 +473,37 @@ private fun TimeRow(label: String, minutes: Int, onPicked: (Int) -> Unit) {
             formatMinutes(minutes),
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Composable
+private fun AppLimitRow(label: String, limit: Int, onChange: (Int) -> Unit, onRemove: () -> Unit) {
+    Column(Modifier.padding(vertical = 4.dp, horizontal = 4.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+            )
+            Text(
+                durationLabel(limit),
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+            )
+            IconButton(onClick = onRemove) {
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.app_limit_remove))
+            }
+        }
+        Slider(
+            value = limit.toFloat(),
+            onValueChange = { onChange(Math.round(it / 5f) * 5) },
+            valueRange = 5f..240f,
+            steps = 46,
         )
     }
 }

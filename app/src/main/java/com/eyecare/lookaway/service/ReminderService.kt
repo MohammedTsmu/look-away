@@ -231,13 +231,51 @@ class ReminderService : Service() {
 
     private fun checkMindfulUsage() {
         val s = ReminderEngine.settings
-        if (!s.mindfulUsageEnabled || !UsageTracker.hasAccess(this)) return
-        val minutes = UsageTracker.todayForegroundMinutes(this)
-        val threshold = RunState.usageNudgeThreshold(this, s.mindfulUsageThresholdMin)
-        if (minutes >= threshold) {
-            postUsageNudge(minutes)
-            RunState.setUsageNudgeThreshold(this, minutes + s.mindfulUsageRepeatMin)
+        if (!s.mindfulUsageEnabled && s.appLimits.isEmpty()) return
+        if (!UsageTracker.hasAccess(this)) return
+
+        if (s.mindfulUsageEnabled) {
+            val minutes = UsageTracker.todayForegroundMinutes(this)
+            val threshold = RunState.usageNudgeThreshold(this, s.mindfulUsageThresholdMin)
+            if (minutes >= threshold) {
+                postUsageNudge(minutes)
+                RunState.setUsageNudgeThreshold(this, minutes + s.mindfulUsageRepeatMin)
+            }
         }
+
+        if (s.appLimits.isNotEmpty()) {
+            val perApp = UsageTracker.perAppMinutesToday(this)
+            val alreadyNudged = RunState.appNudgedToday(this)
+            for ((pkg, limit) in s.appLimits) {
+                if (pkg in alreadyNudged) continue
+                if ((perApp[pkg] ?: 0) >= limit) {
+                    postAppLimitNudge(pkg, perApp[pkg] ?: 0)
+                    RunState.markAppNudged(this, pkg)
+                }
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission") // guarded by canPostNotifications()
+    private fun postAppLimitNudge(pkg: String, usedMinutes: Int) {
+        if (!canPostNotifications()) return
+        val openApp = PendingIntent.getActivity(
+            this, 31,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val label = UsageTracker.appLabel(this, pkg)
+        val text = getString(R.string.app_limit_nudge_text, label, formatDuration(usedMinutes))
+        val notification = NotificationCompat.Builder(this, Notifications.CHANNEL_NUDGE)
+            .setSmallIcon(R.drawable.ic_eye)
+            .setContentTitle(getString(R.string.app_limit_nudge_title))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setContentIntent(openApp)
+            .setAutoCancel(true)
+            .build()
+        // Tag by package so multiple apps can each show their own nudge.
+        NotificationManagerCompat.from(this).notify(pkg, Notifications.ID_USAGE, notification)
     }
 
     @SuppressLint("MissingPermission") // guarded by canPostNotifications()

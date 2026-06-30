@@ -70,6 +70,23 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setMindfulEnabled(v: Boolean) = edit { setMindfulEnabled(v) }
     fun setMindfulThreshold(v: Int) = edit { setMindfulThreshold(v) }
     fun setMindfulRepeat(v: Int) = edit { setMindfulRepeat(v) }
+    fun setAppLimit(pkg: String, minutes: Int) = edit { setAppLimit(pkg, minutes) }
+    fun removeAppLimit(pkg: String) = edit { removeAppLimit(pkg) }
+
+    // ---- Usage helpers ----
+    suspend fun loadInstalledApps(): List<com.eyecare.lookaway.usage.InstalledApp> =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            com.eyecare.lookaway.usage.UsageTracker.installedLaunchableApps(context())
+        }
+
+    fun appLabel(pkg: String): String =
+        com.eyecare.lookaway.usage.UsageTracker.appLabel(context(), pkg)
+
+    fun screenMinutesToday(): Int =
+        com.eyecare.lookaway.usage.UsageTracker.todayForegroundMinutes(context())
+
+    fun appMinutesToday(pkg: String): Int =
+        com.eyecare.lookaway.usage.UsageTracker.appMinutesToday(context(), pkg)
     fun setStartOnBoot(v: Boolean) = edit { setStartOnBoot(v) }
     fun setStartOnOpen(v: Boolean) = edit { setStartOnOpen(v) }
     fun setQuietEnabled(v: Boolean) = edit { setQuietEnabled(v) }

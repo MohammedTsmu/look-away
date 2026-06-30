@@ -9,6 +9,9 @@ import android.provider.Settings
 import androidx.core.content.getSystemService
 import java.util.Calendar
 
+/** An installed, launchable app the user can set a limit for. */
+data class InstalledApp(val packageName: String, val label: String)
+
 /**
  * Reads how long the device has been used today via [UsageStatsManager]. Used for
  * the gentle "you've been on your phone a while — step away" reminder. Requires
@@ -42,6 +45,37 @@ object UsageTracker {
             ?: return 0
         val totalMs = stats.values.sumOf { it.totalTimeInForeground }
         return (totalMs / 60_000L).toInt()
+    }
+
+    /** Per-package foreground minutes since midnight (only apps with usage today). */
+    fun perAppMinutesToday(context: Context): Map<String, Int> {
+        if (!hasAccess(context)) return emptyMap()
+        val usm = context.getSystemService<UsageStatsManager>() ?: return emptyMap()
+        val stats = runCatching { usm.queryAndAggregateUsageStats(startOfToday(), System.currentTimeMillis()) }
+            .getOrNull() ?: return emptyMap()
+        return stats.mapValues { (it.value.totalTimeInForeground / 60_000L).toInt() }
+            .filterValues { it > 0 }
+    }
+
+    fun appMinutesToday(context: Context, packageName: String): Int =
+        perAppMinutesToday(context)[packageName] ?: 0
+
+    /** Best-effort human label for a package. */
+    fun appLabel(context: Context, packageName: String): String = runCatching {
+        val pm = context.packageManager
+        pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
+    }.getOrDefault(packageName)
+
+    /** All launchable apps (excluding us), sorted by label. Call off the main thread. */
+    fun installedLaunchableApps(context: Context): List<InstalledApp> {
+        val pm = context.packageManager
+        val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+        val resolved = runCatching { pm.queryIntentActivities(intent, 0) }.getOrNull().orEmpty()
+        return resolved
+            .map { InstalledApp(it.activityInfo.packageName, it.loadLabel(pm).toString()) }
+            .filter { it.packageName != context.packageName }
+            .distinctBy { it.packageName }
+            .sortedBy { it.label.lowercase() }
     }
 
     fun usageAccessIntent(): Intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)

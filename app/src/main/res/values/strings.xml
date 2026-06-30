@@ -25,6 +25,8 @@
     <string name="action_turn_on">Turn on</string>
     <string name="usage_nudge_title">Time to look up</string>
     <string name="usage_nudge_text">You\'ve been on screen %1$s today. Maybe step away and enjoy real life for a bit.</string>
+    <string name="app_limit_nudge_title">App limit reached</string>
+    <string name="app_limit_nudge_text">You\'ve spent %2$s on %1$s today. Time for a real break?</string>
     <string name="dur_h_m">%1$dh %2$dm</string>
     <string name="dur_m">%1$dm</string>
 
@@ -105,6 +107,15 @@
     <string name="settings_mindful_desc">A gentle reminder to look up after a lot of screen time today. Needs Usage Access.</string>
     <string name="settings_mindful_after">After</string>
     <string name="settings_mindful_repeat">Then every</string>
+    <string name="settings_app_limits">Per-app limits</string>
+    <string name="settings_app_limits_desc">Get a gentle nudge when you pass a daily time on a chosen app</string>
+    <string name="app_limits_add">Add app limit</string>
+    <string name="app_limits_empty">No app limits yet</string>
+    <string name="app_limit_used">%1$s today</string>
+    <string name="app_limit_remove">Remove</string>
+    <string name="app_picker_title">Choose an app</string>
+    <string name="app_picker_loading">Loading apps…</string>
+    <string name="home_screen_today">Screen today</string>
 
     <!-- Turn-off bottom sheet -->
     <string name="sheet_title">Turn off or pause?</string>

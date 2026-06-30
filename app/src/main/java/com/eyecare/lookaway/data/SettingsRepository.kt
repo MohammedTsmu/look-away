@@ -38,6 +38,7 @@ class SettingsRepository(private val context: Context) {
         val mindfulEnabled = booleanPreferencesKey("mindful_enabled")
         val mindfulThreshold = intPreferencesKey("mindful_threshold")
         val mindfulRepeat = intPreferencesKey("mindful_repeat")
+        val appLimits = androidx.datastore.preferences.core.stringSetPreferencesKey("app_limits")
         val theme = intPreferencesKey("theme_mode")
         val accent = intPreferencesKey("accent_index")
     }
@@ -66,6 +67,7 @@ class SettingsRepository(private val context: Context) {
             mindfulUsageEnabled = this[Keys.mindfulEnabled] ?: d.mindfulUsageEnabled,
             mindfulUsageThresholdMin = this[Keys.mindfulThreshold] ?: d.mindfulUsageThresholdMin,
             mindfulUsageRepeatMin = this[Keys.mindfulRepeat] ?: d.mindfulUsageRepeatMin,
+            appLimits = parseAppLimits(this[Keys.appLimits]),
             themeMode = ThemeMode.entries.getOrElse(this[Keys.theme] ?: 0) { ThemeMode.SYSTEM },
             accentIndex = this[Keys.accent] ?: d.accentIndex,
         )
@@ -90,6 +92,26 @@ class SettingsRepository(private val context: Context) {
     suspend fun setMindfulEnabled(v: Boolean) = edit { it[Keys.mindfulEnabled] = v }
     suspend fun setMindfulThreshold(v: Int) = edit { it[Keys.mindfulThreshold] = v.coerceIn(15, 600) }
     suspend fun setMindfulRepeat(v: Int) = edit { it[Keys.mindfulRepeat] = v.coerceIn(10, 240) }
+
+    suspend fun setAppLimit(pkg: String, minutes: Int) = edit { p ->
+        val current = p[Keys.appLimits] ?: emptySet()
+        val without = current.filterNot { it.substringBeforeLast('=') == pkg }.toSet()
+        p[Keys.appLimits] = without + "$pkg=${minutes.coerceIn(5, 600)}"
+    }
+
+    suspend fun removeAppLimit(pkg: String) = edit { p ->
+        val current = p[Keys.appLimits] ?: return@edit
+        p[Keys.appLimits] = current.filterNot { it.substringBeforeLast('=') == pkg }.toSet()
+    }
+
+    private fun parseAppLimits(set: Set<String>?): Map<String, Int> =
+        set.orEmpty().mapNotNull { entry ->
+            val i = entry.lastIndexOf('=')
+            if (i <= 0) return@mapNotNull null
+            val pkg = entry.substring(0, i)
+            val minutes = entry.substring(i + 1).toIntOrNull() ?: return@mapNotNull null
+            pkg to minutes
+        }.toMap()
     suspend fun setTheme(v: ThemeMode) = edit { it[Keys.theme] = v.ordinal }
     suspend fun setAccent(v: Int) = edit { it[Keys.accent] = v }
 

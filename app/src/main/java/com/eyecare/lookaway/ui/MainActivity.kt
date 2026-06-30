@@ -23,6 +23,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.eyecare.lookaway.ui.screens.AppPickerScreen
 import com.eyecare.lookaway.ui.screens.HomeScreen
 import com.eyecare.lookaway.ui.screens.SettingsScreen
 import com.eyecare.lookaway.ui.theme.LookAwayTheme
@@ -63,10 +64,19 @@ class MainActivity : ComponentActivity() {
 
                 var screen by rememberSaveable { mutableStateOf(SCREEN_HOME) }
                 when (screen) {
+                    SCREEN_APPS -> AppPickerScreen(
+                        viewModel = viewModel,
+                        onPicked = { pkg ->
+                            viewModel.setAppLimit(pkg, 60)
+                            screen = SCREEN_SETTINGS
+                        },
+                        onBack = { screen = SCREEN_SETTINGS },
+                    )
                     SCREEN_SETTINGS -> SettingsScreen(
                         viewModel = viewModel,
                         onBack = { screen = SCREEN_HOME },
                         onOpenIntent = { intent -> openSafely(intent) },
+                        onAddAppLimit = { screen = SCREEN_APPS },
                     )
                     else -> HomeScreen(
                         viewModel = viewModel,
@@ -91,6 +101,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         private const val SCREEN_HOME = "home"
         private const val SCREEN_SETTINGS = "settings"
+        private const val SCREEN_APPS = "apps"
     }
 }
 
