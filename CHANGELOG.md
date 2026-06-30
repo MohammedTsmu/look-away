@@ -8,10 +8,10 @@
 - **MINOR** — number of distinct user-facing **features** in the app.
 - **PATCH** — number of **enhancement / fix passes** applied on top of features.
 
-So the version literally encodes the scope: `1.19.9` = generation 1, **19 features**,
+So the version literally encodes the scope: `1.21.9` = generation 1, **21 features**,
 **9 enhancement passes**. `versionCode` is `MAJOR*10000 + MINOR*100 + PATCH`.
 
-## Feature inventory (19)
+## Feature inventory (21)
 
 | # | Feature |
 |---|---------|
@@ -34,6 +34,8 @@ So the version literally encodes the scope: `1.19.9` = generation 1, **19 featur
 | 17 | Selectable break sound (pick any notification tone) |
 | 18 | Mindful-usage reminder — gentle, dismissible nudge to step away after a configurable amount of daily screen time (Usage Access; off by default) |
 | 19 | Per-app daily soft limits (pick apps, set a limit, gentle nudge when exceeded — no blocking) + a "screen time today" stat on the home screen |
+| 20 | Weekly screen-time summary — a 7-day mini bar chart on the home screen |
+| 21 | Focus session — mute usage & app-limit nudges for 30 min / 1 h / 2 h |
 
 ## Enhancement passes (3)
 
@@ -50,6 +52,14 @@ So the version literally encodes the scope: `1.19.9` = generation 1, **19 featur
 | 9 | Overlay break stability — non-focusable overlay window + quiet companion notification so it no longer flickers/drops behind; app icons in the picker and limit lists |
 
 ---
+
+## 1.21.9
+
+- **New — Weekly screen-time summary:** a small 7-day bar chart on the home
+  screen (when Usage Access is granted), so you can see your trend at a glance.
+- **New — Focus session:** tap **Focus → Start** and pick 30 min / 1 h / 2 h to
+  **mute all usage and per-app-limit nudges** for that window — so you can work
+  without interruptions. Shows "On until HH:mm" with a Stop button.
 
 ## 1.19.9
 

@@ -116,6 +116,17 @@
     <string name="app_picker_title">اختر تطبيقًا</string>
     <string name="app_picker_loading">جارٍ تحميل التطبيقات…</string>
     <string name="home_screen_today">الشاشة اليوم</string>
+    <string name="home_week_title">هذا الأسبوع</string>
+    <string name="home_focus_title">وضع التركيز</string>
+    <string name="home_focus_desc">كتم تذكيرات الاستخدام لفترة</string>
+    <string name="home_focus_until">مُفعّل حتى %1$s</string>
+    <string name="home_focus_start">ابدأ</string>
+    <string name="home_focus_stop">إيقاف</string>
+    <string name="focus_sheet_title">كتم التذكيرات لمدة…</string>
+    <string name="focus_sheet_sub">لا تنبيهات استخدام أو حدود تطبيقات حتى ينتهي.</string>
+    <string name="focus_30m">30 دقيقة</string>
+    <string name="focus_1h">ساعة واحدة</string>
+    <string name="focus_2h">ساعتان</string>
 
     <!-- Turn-off bottom sheet -->
     <string name="sheet_title">إيقاف أم تأجيل؟</string>

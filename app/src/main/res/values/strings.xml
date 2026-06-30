@@ -116,6 +116,17 @@
     <string name="app_picker_title">Choose an app</string>
     <string name="app_picker_loading">Loading apps…</string>
     <string name="home_screen_today">Screen today</string>
+    <string name="home_week_title">This week</string>
+    <string name="home_focus_title">Focus mode</string>
+    <string name="home_focus_desc">Mute usage reminders for a while</string>
+    <string name="home_focus_until">On until %1$s</string>
+    <string name="home_focus_start">Start</string>
+    <string name="home_focus_stop">Stop</string>
+    <string name="focus_sheet_title">Mute reminders for…</string>
+    <string name="focus_sheet_sub">No usage or app-limit nudges until it ends.</string>
+    <string name="focus_30m">30 minutes</string>
+    <string name="focus_1h">1 hour</string>
+    <string name="focus_2h">2 hours</string>
 
     <!-- Turn-off bottom sheet -->
     <string name="sheet_title">Turn off or pause?</string>

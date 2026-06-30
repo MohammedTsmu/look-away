@@ -69,6 +69,22 @@ object RunState {
         p.edit().putInt(KEY_APP_DAY, today).putStringSet(KEY_APP_NUDGED, current + pkg).apply()
     }
 
+    // ---- Focus session: mutes usage/app nudges until this epoch ----
+    private const val KEY_FOCUS_UNTIL = "focus_until"
+
+    fun focusUntil(context: Context): Long = prefs(context).getLong(KEY_FOCUS_UNTIL, 0L)
+
+    fun isFocusActive(context: Context): Boolean =
+        focusUntil(context) > System.currentTimeMillis()
+
+    fun setFocusUntil(context: Context, epochMillis: Long) {
+        prefs(context).edit().putLong(KEY_FOCUS_UNTIL, epochMillis).apply()
+    }
+
+    fun clearFocus(context: Context) {
+        prefs(context).edit().remove(KEY_FOCUS_UNTIL).apply()
+    }
+
     private fun dayKey(): Int {
         val c = java.util.Calendar.getInstance()
         return c.get(java.util.Calendar.YEAR) * 1000 + c.get(java.util.Calendar.DAY_OF_YEAR)

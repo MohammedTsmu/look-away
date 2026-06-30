@@ -87,6 +87,19 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun appMinutesToday(pkg: String): Int =
         com.eyecare.lookaway.usage.UsageTracker.appMinutesToday(context(), pkg)
+
+    fun last7DaysMinutes(): IntArray =
+        com.eyecare.lookaway.usage.UsageTracker.last7DaysMinutes(context())
+
+    // ---- Focus session ----
+    fun startFocus(minutes: Int) =
+        com.eyecare.lookaway.service.RunState.setFocusUntil(
+            context(), System.currentTimeMillis() + minutes.toLong() * 60 * 1000,
+        )
+
+    fun stopFocus() = com.eyecare.lookaway.service.RunState.clearFocus(context())
+
+    fun focusUntil(): Long = com.eyecare.lookaway.service.RunState.focusUntil(context())
     fun setStartOnBoot(v: Boolean) = edit { setStartOnBoot(v) }
     fun setStartOnOpen(v: Boolean) = edit { setStartOnOpen(v) }
     fun setQuietEnabled(v: Boolean) = edit { setQuietEnabled(v) }

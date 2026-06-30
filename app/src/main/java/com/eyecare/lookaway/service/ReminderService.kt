@@ -237,6 +237,8 @@ class ReminderService : Service() {
         val s = ReminderEngine.settings
         if (!s.mindfulUsageEnabled && s.appLimits.isEmpty()) return
         if (!UsageTracker.hasAccess(this)) return
+        // During a focus session, stay quiet — no usage or app-limit nudges.
+        if (RunState.isFocusActive(this)) return
 
         if (s.mindfulUsageEnabled) {
             val minutes = UsageTracker.todayForegroundMinutes(this)

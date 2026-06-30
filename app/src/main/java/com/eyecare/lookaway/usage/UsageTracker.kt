@@ -78,6 +78,28 @@ object UsageTracker {
             .sortedBy { it.label.lowercase() }
     }
 
+    /**
+     * Foreground minutes for each of the last 7 days, oldest first (index 6 = today).
+     */
+    fun last7DaysMinutes(context: Context): IntArray {
+        val out = IntArray(7)
+        if (!hasAccess(context)) return out
+        val usm = context.getSystemService<UsageStatsManager>() ?: return out
+        val now = System.currentTimeMillis()
+        for (i in 0 until 7) {
+            val dayStart = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+                add(Calendar.DAY_OF_YEAR, -(6 - i))
+            }.timeInMillis
+            val dayEnd = (dayStart + 24L * 60 * 60 * 1000).coerceAtMost(now)
+            if (dayEnd <= dayStart) continue
+            val stats = runCatching { usm.queryAndAggregateUsageStats(dayStart, dayEnd) }.getOrNull()
+            out[i] = stats?.values?.sumOf { it.totalTimeInForeground }?.let { (it / 60_000L).toInt() } ?: 0
+        }
+        return out
+    }
+
     fun usageAccessIntent(): Intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
 
     private fun startOfToday(): Long {

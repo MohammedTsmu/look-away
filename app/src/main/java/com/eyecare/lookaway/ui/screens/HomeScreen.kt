@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -222,16 +224,33 @@ fun HomeScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Today's screen time (when Usage Access is granted).
+            // Usage cards (when Usage Access is granted): today, focus, this week.
             var screenMin by remember { mutableIntStateOf(-1) }
+            var week by remember { mutableStateOf<IntArray?>(null) }
+            var focusUntil by remember { mutableLongStateOf(viewModel.focusUntil()) }
+            var showFocusSheet by remember { mutableStateOf(false) }
             LaunchedEffect(permissions.usageAccess) {
                 if (permissions.usageAccess) {
                     while (true) {
                         screenMin = withContext(Dispatchers.IO) { viewModel.screenMinutesToday() }
+                        week = withContext(Dispatchers.IO) { viewModel.last7DaysMinutes() }
+                        focusUntil = viewModel.focusUntil()
                         delay(60_000)
                     }
                 }
             }
+
+            if (showFocusSheet) {
+                FocusSheet(
+                    onPick = { min ->
+                        showFocusSheet = false
+                        viewModel.startFocus(min)
+                        focusUntil = viewModel.focusUntil()
+                    },
+                    onDismiss = { showFocusSheet = false },
+                )
+            }
+
             if (screenMin >= 0) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -257,6 +276,19 @@ fun HomeScreen(
                     }
                 }
                 Spacer(Modifier.height(12.dp))
+            }
+
+            if (permissions.usageAccess) {
+                FocusCard(
+                    focusUntilMillis = focusUntil,
+                    onStart = { showFocusSheet = true },
+                    onStop = { viewModel.stopFocus(); focusUntil = 0L },
+                )
+                Spacer(Modifier.height(12.dp))
+                week?.takeIf { arr -> arr.any { it > 0 } }?.let { arr ->
+                    WeekChart(arr)
+                    Spacer(Modifier.height(12.dp))
+                }
             }
 
             // Today's tally + the current rule summary.
@@ -466,6 +498,142 @@ private fun screenTimeLabel(minutes: Int): String {
         h > 0 && m > 0 -> "${h}h ${m}m"
         h > 0 -> "${h}h"
         else -> "${m}m"
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FocusSheet(onPick: (Int) -> Unit, onDismiss: () -> Unit) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 28.dp),
+        ) {
+            Text(
+                stringResource(R.string.focus_sheet_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                stringResource(R.string.focus_sheet_sub),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(12.dp))
+            SheetRow(Icons.Filled.Snooze, stringResource(R.string.focus_30m)) { onPick(30) }
+            SheetRow(Icons.Filled.Timer, stringResource(R.string.focus_1h)) { onPick(60) }
+            SheetRow(Icons.Filled.Timer, stringResource(R.string.focus_2h)) { onPick(120) }
+        }
+    }
+}
+
+@Composable
+private fun FocusCard(focusUntilMillis: Long, onStart: () -> Unit, onStop: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val active = focusUntilMillis > System.currentTimeMillis()
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (active) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            },
+        ),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.home_focus_title), fontWeight = FontWeight.SemiBold)
+                if (active) {
+                    val time = remember(focusUntilMillis) {
+                        android.text.format.DateFormat.getTimeFormat(context)
+                            .format(java.util.Date(focusUntilMillis))
+                    }
+                    Text(
+                        stringResource(R.string.home_focus_until, time),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                } else {
+                    Text(
+                        stringResource(R.string.home_focus_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Spacer(Modifier.width(12.dp))
+            if (active) {
+                Button(onClick = onStop, shape = RoundedCornerShape(14.dp)) {
+                    Text(stringResource(R.string.home_focus_stop))
+                }
+            } else {
+                FilledTonalButton(onClick = onStart, shape = RoundedCornerShape(14.dp)) {
+                    Text(stringResource(R.string.home_focus_start))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WeekChart(minutes: IntArray) {
+    val max = (minutes.maxOrNull() ?: 0).coerceAtLeast(1)
+    val labels = remember { weekdayLabels() }
+    val barColor = MaterialTheme.colorScheme.primary
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        ),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                stringResource(R.string.home_week_title),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().height(96.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                for (i in 0 until 7) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Bottom,
+                    ) {
+                        val barHeight = (minutes[i].toFloat() / max * 64f).dp.coerceAtLeast(3.dp)
+                        Box(
+                            Modifier
+                                .width(14.dp)
+                                .height(barHeight)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(if (i == 6) barColor else barColor.copy(alpha = 0.4f)),
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(labels[i], style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun weekdayLabels(): List<String> {
+    val fmt = java.text.SimpleDateFormat("EEE", java.util.Locale.getDefault())
+    val cal = java.util.Calendar.getInstance()
+    cal.add(java.util.Calendar.DAY_OF_YEAR, -6)
+    return (0 until 7).map {
+        val s = fmt.format(cal.time)
+        cal.add(java.util.Calendar.DAY_OF_YEAR, 1)
+        s
     }
 }
 
